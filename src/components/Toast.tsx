@@ -20,7 +20,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     const [toasts, setToasts] = useState<Toast[]>([]);
 
     const addToast = (message: string, type: ToastType) => {
-        const id = Math.random().toString(36).substr(2, 9);
+        const id = Math.random().toString(36).substring(2, 11);
         setToasts((prev) => [...prev, { id, message, type }]);
         setTimeout(() => {
             setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -34,19 +34,21 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 {toasts.map((toast) => (
                     <div
                         key={toast.id}
-                        className={`px-6 py-4 rounded-xl shadow-2xl border flex items-center gap-3 animate-in slide-in-from-right-full duration-300 ${toast.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' :
-                                toast.type === 'error' ? 'bg-red-50 border-red-100 text-red-800' :
-                                    'bg-blue-50 border-blue-100 text-blue-800'
-                            }`}
+                        className={`px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-xl flex items-center gap-3 animate-in slide-in-from-right-full duration-300 ${
+                            toast.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-100 shadow-emerald-500/20' :
+                            toast.type === 'error' ? 'bg-red-500/10 border-red-500/30 text-red-100 shadow-red-500/20' :
+                            'bg-indigo-500/10 border-indigo-500/30 text-indigo-100 shadow-indigo-500/20'
+                        }`}
                     >
-                        <div className={`w-2 h-2 rounded-full ${toast.type === 'success' ? 'bg-emerald-500' :
-                                toast.type === 'error' ? 'bg-red-500' :
-                                    'bg-blue-500'
-                            }`} />
+                        <div className={`w-2 h-2 rounded-full animate-pulse ${
+                            toast.type === 'success' ? 'bg-emerald-400' :
+                            toast.type === 'error' ? 'bg-red-400' :
+                            'bg-indigo-400'
+                        }`} />
                         <span className="text-sm font-semibold">{toast.message}</span>
                         <button
                             onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
-                            className="ml-4 text-slate-400 hover:text-slate-600"
+                            className="ml-4 text-white/40 hover:text-white transition-colors"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
