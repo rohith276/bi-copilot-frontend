@@ -1,0 +1,196 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --app-font-sans: "Aptos", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --app-font-mono: "Cascadia Code", "SFMono-Regular", "Consolas", monospace;
+
+  /* Brand Palette */
+  --brand-primary: #4f46e5;
+  --brand-secondary: #7c3aed;
+  --brand-accent-1: #10b981;
+  --brand-accent-2: #f59e0b;
+  --brand-accent-3: #ef4444;
+  --brand-accent-4: #0ea5e9;
+
+  /* Surface Colors */
+  --surface-100: #ffffff;
+  --surface-200: #f1f5f9;
+  --surface-300: #e2e8f0;
+
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --panel-bg: rgba(255, 255, 255, 0.7);
+  --border-color: rgba(255, 255, 255, 0.4);
+  --table-head: #0f172a;
+  --table-head-text: #ffffff;
+}
+
+.dark {
+  --background: #020617;
+  --foreground: #f8fafc;
+
+  /* Surface Colors Dark */
+  --surface-100: #0f172a;
+  --surface-200: #1e293b;
+  --surface-300: #334155;
+
+  --card-bg: rgba(15, 23, 42, 0.8);
+  --panel-bg: rgba(15, 23, 42, 0.7);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --table-head: #000000;
+  --table-head-text: #f8fafc;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-accent-1: var(--brand-accent-1);
+  --color-brand-accent-2: var(--brand-accent-2);
+  --color-brand-accent-3: var(--brand-accent-3);
+  --color-brand-accent-4: var(--brand-accent-4);
+  --color-surface-100: var(--surface-100);
+  --color-surface-200: var(--surface-200);
+  --color-surface-300: var(--surface-300);
+  --font-sans: var(--app-font-sans);
+  --font-mono: var(--app-font-mono);
+}
+
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:is(.dark *));
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* Fallback for when Tailwind variants fail */
+.dark body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+}
+
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Animated Gradients */
+@keyframes gradient-x {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-x 15s ease infinite;
+}
+
+/* Glow Effects */
+.glow-primary {
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.2);
+}
+
+.glow-secondary {
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Print Styles for PDF Export */
+@media print {
+  nav, button, .no-print, [role="button"] {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .fixed {
+    position: relative !important;
+    display: block !important;
+    background: white !important;
+    padding: 0 !important;
+  }
+
+  .overflow-y-auto {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  .shadow-2xl, .shadow-xl, .shadow-md {
+    box-shadow: none !important;
+  }
+
+  .rounded-\[40px\], .rounded-\[32px\] {
+    border-radius: 8px !important;
+    border: 1px solid #eee !important;
+  }
+
+  .bg-gradient-to-r {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+  }
+  
+  .bg-slate-900, .dark .bg-slate-900 {
+    background: white !important;
+    color: black !important;
+  }
+
+  h2, h3, p, span {
+    color: black !important;
+  }
+}
