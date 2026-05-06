@@ -39,11 +39,38 @@ export default function DebugPage() {
                     </div>
                 </div>
 
+                <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+                    <p className="text-gray-500 mb-2 uppercase tracking-widest text-[10px]">Manual Migration Tool</p>
+                    <div className="flex gap-2">
+                        <input 
+                            id="manual_url"
+                            type="text" 
+                            placeholder="https://your-backend.onrender.com"
+                            className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                        <button 
+                            onClick={() => {
+                                const url = (document.getElementById('manual_url') as HTMLInputElement).value;
+                                if (url) {
+                                    localStorage.setItem('bi_api_url', url);
+                                    window.location.reload();
+                                }
+                            }}
+                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold uppercase"
+                        >
+                            Apply
+                        </button>
+                    </div>
+                </div>
+
                 <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6">
-                    <p className="text-red-400 font-bold mb-2">Troubleshooting Guide:</p>
-                    <ul className="list-disc list-inside text-red-300/70 space-y-2">
-                        <li>If "Build Env Var" is <b>NOT SET</b> or <b>http://localhost:8000</b>: You must add <b>NEXT_PUBLIC_API_URL</b> to Vercel Settings and Redeploy.</li>
-                        <li>If "Active Endpoint" is still localhost: The frontend cannot find your backend. Ensure the Vercel variable has no trailing slash.</li>
+                    <p className="text-red-400 font-bold mb-2 text-sm uppercase tracking-tighter">🚨 Immediate Action Required</p>
+                    <p className="text-red-300/70 text-[11px] mb-4">
+                        Your Vercel build is currently <b>disconnected</b> from the intelligence engine. Follow these steps:
+                    </p>
+                    <ul className="list-disc list-inside text-red-300/70 space-y-2 text-[11px]">
+                        <li><b>Short Term:</b> Paste <code>https://bi-copilot-backend.onrender.com</code> in the box above and click Apply.</li>
+                        <li><b>Permanent:</b> Go to Vercel Settings, add <b>NEXT_PUBLIC_API_URL</b>, and Redeploy.</li>
                     </ul>
                 </div>
 
@@ -52,9 +79,9 @@ export default function DebugPage() {
                         localStorage.removeItem('bi_api_url');
                         window.location.reload();
                     }}
-                    className="mt-6 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors uppercase font-bold tracking-tighter"
+                    className="mt-6 px-6 py-3 bg-white/5 hover:bg-white/10 text-white/50 rounded-lg transition-colors uppercase font-bold tracking-tighter text-[10px] border border-white/5"
                 >
-                    Reset Connection Cache
+                    Clear Override & Use System Defaults
                 </button>
             </div>
         </div>
