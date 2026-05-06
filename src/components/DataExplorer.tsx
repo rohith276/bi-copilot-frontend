@@ -204,7 +204,10 @@ export default function DataExplorer({ datasetId, activeModule }: DataExplorerPr
 
     const handleNLQuery = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!nlQuery.trim()) return;
+        if (!nlQuery.trim()) {
+            addToast('Please enter a question for the AI to analyze', 'info');
+            return;
+        }
 
         setNlLoading(true);
         try {
