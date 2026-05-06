@@ -58,6 +58,7 @@ export default function RegisterPage() {
                             <input
                                 type="text"
                                 required
+                                autoComplete="name"
                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all placeholder:text-slate-600 font-medium"
                                 placeholder="Agent 001"
                                 value={username}
@@ -70,6 +71,7 @@ export default function RegisterPage() {
                             <input
                                 type="email"
                                 required
+                                autoComplete="email"
                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600 font-medium"
                                 placeholder="operative@hq.com"
                                 value={email}
@@ -82,6 +84,7 @@ export default function RegisterPage() {
                             <input
                                 type="password"
                                 required
+                                autoComplete="new-password"
                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all placeholder:text-slate-600 font-medium"
                                 placeholder="••••••••"
                                 value={password}

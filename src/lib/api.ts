@@ -4,7 +4,18 @@ export const API_BASE_URL = DEFAULT_API_BASE_URL;
 
 export function getApiBaseUrl() {
     if (typeof window !== 'undefined') {
-        return localStorage.getItem('bi_api_url') || DEFAULT_API_BASE_URL;
+        const storedUrl = localStorage.getItem('bi_api_url');
+        const envUrl = process.env.NEXT_PUBLIC_API_URL;
+        
+        // In production (non-localhost environment), if envUrl is set, prioritize it
+        // unless explicitly overridden by a non-localhost stored URL
+        const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        if (!isLocalHost && envUrl && envUrl !== 'http://localhost:8000') {
+            return envUrl;
+        }
+        
+        return storedUrl || envUrl || DEFAULT_API_BASE_URL;
     }
     return DEFAULT_API_BASE_URL;
 }
