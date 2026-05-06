@@ -21,7 +21,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
     const addToast = (message: string, type: ToastType) => {
         const id = Math.random().toString(36).substring(2, 11);
-        setToasts((prev) => [...prev, { id, message, type }]);
+        const safeMessage = typeof message === 'string' ? message : (message && typeof (message as any).message === 'string' ? (message as any).message : JSON.stringify(message));
+        setToasts((prev) => [...prev, { id, message: safeMessage, type }]);
         setTimeout(() => {
             setToasts((prev) => prev.filter((t) => t.id !== id));
         }, 4000);
