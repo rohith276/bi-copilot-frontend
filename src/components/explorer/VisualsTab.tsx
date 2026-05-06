@@ -56,7 +56,7 @@ export default function VisualsTab({
                                 <select
                                     value={chartConfig.labelCol}
                                     onChange={e => setChartConfig({ ...chartConfig, labelCol: e.target.value })}
-                                    className="w-full bg-slate-50 dark:bg-slate-700 border border-indigo-200 dark:border-indigo-500/30 rounded-2xl px-5 py-3.5 text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-indigo-500/20 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+                                    className="w-full bg-slate-50 dark:bg-slate-700 border border-indigo-200 dark:border-indigo-500/30 rounded-2xl px-5 py-3.5 text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-indigo-500/20 transition-all cursor-pointer shadow-sm"
                                 >
                                     <option value="" disabled>Select Dimension</option>
                                     {dimensions.map(col => (
@@ -72,7 +72,7 @@ export default function VisualsTab({
                                 <select
                                     value={chartConfig.valueCol}
                                     onChange={e => setChartConfig({ ...chartConfig, valueCol: e.target.value })}
-                                    className="w-full bg-slate-50 dark:bg-slate-700 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl px-5 py-3.5 text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+                                    className="w-full bg-slate-50 dark:bg-slate-700 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl px-5 py-3.5 text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all cursor-pointer shadow-sm"
                                 >
                                     <option value="" disabled>Select Measure</option>
                                     {measures.map(col => (

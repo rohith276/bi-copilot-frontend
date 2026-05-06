@@ -38,7 +38,7 @@ export default function CopilotTab({
                     <button
                         type="submit"
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
-                        disabled={nlLoading || !nlQuery.trim()}
+                        disabled={nlLoading}
                     >
                         {nlLoading ? 'Processing...' : 'Run Query'}
                     </button>
