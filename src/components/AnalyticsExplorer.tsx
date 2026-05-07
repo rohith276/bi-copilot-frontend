@@ -315,22 +315,22 @@ export default function AnalyticsExplorer({ datasetId, activeModule }: Analytics
 
                                 {fResult && (
                                     <div className="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-[32px] p-6 text-white shadow-2xl">
-                                        <p className="text-[9px] font-black uppercase tracking-widest opacity-70 mb-3">Forecast Summary</p>
+                                        <p className="text-[9px] font-black uppercase tracking-widest opacity-70 mb-3">Forecast Intelligence</p>
                                         <div className="flex items-center gap-3 mb-4">
                                             <span className="text-3xl">{fResult.trend === "up" ? "📈" : "📉"}</span>
                                             <div>
                                                 <p className="font-black text-lg capitalize">{fResult.trend === "up" ? "Upward" : "Downward"} Trend</p>
-                                                <p className="text-xs opacity-70">{fPeriods}-day projection</p>
+                                                <p className="text-[10px] font-bold opacity-80">{fResult.model_engine || "Linear Engine"}</p>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4 text-xs">
                                             <div className="bg-white/10 rounded-xl p-3">
-                                                <p className="opacity-70 text-[9px] uppercase font-black mb-1">Start Value</p>
-                                                <p className="font-black text-lg">{fResult.values[0]?.toFixed(0)}</p>
+                                                <p className="opacity-70 text-[9px] uppercase font-black mb-1">Confidence</p>
+                                                <p className="font-black text-lg">{(fResult.r2_score * 100).toFixed(1)}%</p>
                                             </div>
                                             <div className="bg-white/10 rounded-xl p-3">
-                                                <p className="opacity-70 text-[9px] uppercase font-black mb-1">End Value</p>
-                                                <p className="font-black text-lg">{fResult.values[fResult.values.length - 1]?.toFixed(0)}</p>
+                                                <p className="opacity-70 text-[9px] uppercase font-black mb-1">Horizon</p>
+                                                <p className="font-black text-lg">{fPeriods}d</p>
                                             </div>
                                         </div>
                                     </div>
@@ -423,7 +423,10 @@ export default function AnalyticsExplorer({ datasetId, activeModule }: Analytics
                                         {/* R² Score */}
                                         <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 shadow-xl border border-slate-100 dark:border-white/5">
                                             <div className="flex items-center justify-between mb-6">
-                                                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Model Performance</h3>
+                                                <div>
+                                                    <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">AutoML Selection</h3>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{pResult.model_engine}</p>
+                                                </div>
                                                 <div className={`px-4 py-2 rounded-xl text-sm font-black ${
                                                     pResult.r2_score > 0.8 ? "bg-emerald-100 text-emerald-700" :
                                                     pResult.r2_score > 0.5 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
