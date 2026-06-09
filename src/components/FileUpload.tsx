@@ -39,11 +39,9 @@ export default function FileUpload() {
     }, 100);
 
     try {
-      const token = localStorage.getItem('bi_token');
       const response = await fetch(`${getApiBaseUrl()}/datasets/upload`, {
         method: 'POST',
         body: formData,
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
 
       clearInterval(progressInterval);

@@ -9,8 +9,7 @@ import { useTheme } from "@/components/ThemeContext";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { apiFetch } from "@/lib/api";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import UserInfo from "@/components/UserInfo";
+import { apiFetch } from "@/lib/api";
 
 interface DatasetSummary {
   id: number;
@@ -53,7 +52,7 @@ export default function Home() {
 
 
   return (
-    <ProtectedRoute>
+    <>
       <main className="min-h-screen bg-background text-foreground selection:bg-indigo-100 font-sans pb-20 relative overflow-hidden transition-colors duration-500">
         {/* Dynamic Background Mesh */}
         <div className="fixed inset-0 z-0 pointer-events-none">
@@ -109,7 +108,7 @@ export default function Home() {
             </button>
 
             <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-              <UserInfo />
+              {/* User info removed */}
             </div>
           </div>
         </nav>
@@ -290,6 +289,6 @@ export default function Home() {
           </div>
         </footer>
       </main>
-    </ProtectedRoute>
+    </>
   );
 }

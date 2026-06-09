@@ -23,8 +23,7 @@ export function getApiBaseUrl() {
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     const url = `${getApiBaseUrl()}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
     
-    // Add token from localStorage if available
-    const token = typeof window !== 'undefined' ? localStorage.getItem('bi_token') : null;
+
     const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
     
     const headers: Record<string, string> = {
@@ -32,9 +31,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
         ...(options.headers as Record<string, string>),
     };
 
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
+
 
     try {
         const response = await fetch(url, { ...options, headers });
