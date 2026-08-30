@@ -1,0 +1,210 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #fbfbfa;
+    --foreground: #1c1d21;
+    --surface: #ffffff;
+    --surface-hover: #f3f4f6;
+    --surface-muted: #e5e7eb;
+    --border-color: #d1d5db;
+    --border-subtle: #e5e7eb;
+    --brand-primary: #1e3a8a;
+    --brand-hover: #1e40af;
+    --brand-secondary: #4b5563;
+    --status-success: #059669;
+    --status-warning: #d97706;
+    --status-danger: #dc2626;
+    --graph-line: rgba(0, 0, 0, 0.07);
+    --graph-line-spotlight: #18181b;
+  }
+
+  .dark {
+    --background: #0b0f17;
+    --foreground: #f3f4f6;
+    --surface: #111827;
+    --surface-hover: #1f2937;
+    --surface-muted: #374151;
+    --border-color: #1f2937;
+    --border-subtle: #374151;
+    --brand-primary: #3b82f6;
+    --brand-hover: #2563eb;
+    --brand-secondary: #9ca3af;
+    --status-success: #10b981;
+    --status-warning: #f59e0b;
+    --status-danger: #ef4444;
+    --graph-line: rgba(255, 255, 255, 0.08);
+    --graph-line-spotlight: #38bdf8;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Paper Sheet & SaaS Workspace Cards */
+.paper-sheet,
+.saas-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  position: relative;
+}
+
+/* Decorative Pinned Tape Strip */
+.paper-tape {
+  position: absolute;
+  height: 12px;
+  width: 50px;
+  background-color: rgba(251, 191, 36, 0.35);
+  border: 1px dashed rgba(217, 119, 6, 0.4);
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* Technical Inputs */
+.paper-input,
+.saas-input {
+  background-color: var(--surface);
+  border: 1px solid var(--border-color);
+  color: var(--foreground);
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.paper-input:focus,
+.saas-input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.12);
+}
+
+/* Action Buttons */
+.paper-button,
+.saas-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  padding: 0.4rem 0.875rem;
+  border-radius: 4px;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.paper-button-primary,
+.saas-button-primary {
+  background-color: var(--brand-primary);
+  color: #ffffff;
+  border: 1px solid transparent;
+}
+
+.paper-button-primary:hover,
+.saas-button-primary:hover {
+  background-color: var(--brand-hover);
+}
+
+.paper-button-secondary,
+.saas-button-secondary {
+  background-color: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border-color);
+}
+
+.paper-button-secondary:hover,
+.saas-button-secondary:hover {
+  background-color: var(--surface-hover);
+}
+
+/* High-Density Ledger Table */
+.paper-table,
+.saas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  text-align: left;
+}
+
+.paper-table th,
+.saas-table th {
+  background-color: var(--surface-hover);
+  color: var(--brand-secondary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0.875rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.paper-table td,
+.saas-table td {
+  padding: 0.5rem 0.875rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--foreground);
+}
+
+.paper-table tr:hover,
+.saas-table tr:hover {
+  background-color: var(--surface-hover);
+}
+
+/* Technical Badges */
+.paper-badge,
+.saas-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.saas-badge-neutral {
+  background-color: var(--surface-hover);
+  color: var(--brand-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.saas-badge-success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--status-success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.saas-badge-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--status-warning);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.saas-badge-primary {
+  background-color: rgba(30, 58, 138, 0.1);
+  color: var(--brand-primary);
+  border: 1px solid rgba(30, 58, 138, 0.3);
+}
+
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
