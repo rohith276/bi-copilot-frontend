@@ -59,11 +59,12 @@ export function TechnicalBadge({ text, status = "neutral" }: { text: string; sta
 }
 
 // System Status Telemetry Dot
-export function StatusDot({ status = "online" }: { status?: "online" | "offline" | "warning" }) {
+export function StatusDot({ status = "online" }: { status?: "online" | "offline" | "warning" | "checking" }) {
     const bgMap = {
         online: "bg-emerald-500",
         offline: "bg-rose-500",
         warning: "bg-amber-500",
+        checking: "bg-stone-400 animate-pulse",
     };
 
     return <span className={`w-2 h-2 rounded-full inline-block ${bgMap[status]}`} />;
