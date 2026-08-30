@@ -74,8 +74,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <aside className="w-16 hover:w-56 group shrink-0 bg-(--surface) text-(--foreground) border-r border-(--border-color) flex flex-col z-40 shadow-xs transition-all duration-300 ease-in-out absolute md:relative h-full overflow-hidden">
                     {/* Branding */}
                     <div className="h-14 px-4 border-b border-(--border-color) flex items-center shrink-0">
-                        <div className="w-8 h-8 shrink-0 bg-(--brand-primary) text-white rounded font-mono font-bold text-xs flex items-center justify-center border border-blue-400/30">
-                            BI
+                        <div className="w-8 h-8 shrink-0 flex items-center justify-center">
+                            <img src="/logo.png" alt="BI Copilot Logo" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-screen" />
                         </div>
                         <div className="ml-3 opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-300">
                             <h1 className="font-semibold text-xs text-(--foreground) tracking-tight">
