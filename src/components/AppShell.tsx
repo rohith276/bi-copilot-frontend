@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { getApiBaseUrl, apiFetch, getAuthToken, clearAuthToken } from '@/lib/api';
+import { getApiBaseUrl, apiFetch } from '@/lib/api';
 import { useTheme } from './ThemeContext';
 import { StatusDot } from './PaperAccents';
 import GraphPaperBackground from './GraphPaperBackground';
@@ -15,8 +15,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     const [engineStatus, setEngineStatus] = useState<"checking" | "online" | "offline">("checking");
     const [isCmdPaletteOpen, setCmdPaletteOpen] = useState(false);
     const [cmdQuery, setCmdQuery] = useState('');
-    const [userEmail, setUserEmail] = useState<string | null>(null);
-    const [showUserMenu, setShowUserMenu] = useState(false);
 
     useEffect(() => {
         const checkStatus = async () => {
@@ -44,27 +42,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             clearInterval(interval);
         };
     }, []);
-
-    // Check auth state on mount
-    useEffect(() => {
-        const token = getAuthToken();
-        if (token) {
-            apiFetch('/auth/me').then((user: { email?: string }) => {
-                setUserEmail(user.email || null);
-            }).catch(() => {
-                clearAuthToken();
-                setUserEmail(null);
-            });
-        }
-    }, []);
-
-    const handleLogout = () => {
-        clearAuthToken();
-        setUserEmail(null);
-        setShowUserMenu(false);
-        router.push('/login');
-    };
-
     const isDashboard = pathname.startsWith('/dashboard');
 
     return (
@@ -144,38 +121,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                                     ⌘K
                                 </kbd>
                             </button>
-                            {userEmail ? (
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setShowUserMenu(!showUserMenu)}
-                                        className="w-7 h-7 rounded bg-(--brand-primary) text-white flex items-center justify-center font-mono font-bold text-xs shadow-sm hover:opacity-90 transition-opacity"
-                                        title={userEmail}
-                                    >
-                                        {userEmail[0].toUpperCase()}
-                                    </button>
-                                    {showUserMenu && (
-                                        <div className="absolute right-0 top-full mt-2 w-56 paper-sheet p-0 overflow-hidden shadow-lg z-50">
-                                            <div className="p-3 border-b border-(--border-color) bg-(--surface-hover)">
-                                                <p className="text-[10px] font-mono font-bold text-(--brand-secondary) uppercase">Signed in as</p>
-                                                <p className="text-xs font-mono font-bold text-(--foreground) truncate">{userEmail}</p>
-                                            </div>
-                                            <button
-                                                onClick={handleLogout}
-                                                className="w-full text-left px-3 py-2.5 text-xs font-mono text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                                            >
-                                                ↪ Sign Out
-                                            </button>
-                                        </div>
-                                    )}
+                            <div className="hidden md:flex items-center gap-4 border-l border-(--border-color) pl-4 ml-4">
+                                <div className="flex items-center gap-2">
+                                    <StatusDot status={engineStatus} />
+                                    <span className="text-[10px] font-mono font-bold text-(--brand-secondary) uppercase tracking-widest hidden sm:inline-block">
+                                        {engineStatus === 'online' ? 'System Nominal' : 'Engine Offline'}
+                                    </span>
                                 </div>
-                            ) : (
-                                <Link
-                                    href="/login"
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-(--surface-hover) border border-(--border-color) rounded text-xs font-mono font-bold text-(--brand-secondary) hover:text-(--foreground) transition-colors"
-                                >
-                                    Sign In
-                                </Link>
-                            )}
+                            </div>
                         </div>
                     </header>
 
