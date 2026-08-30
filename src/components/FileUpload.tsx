@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useToast } from './Toast';
-import { getApiBaseUrl, getAuthToken, apiFetch } from '@/lib/api';
+import { getApiBaseUrl, apiFetch } from '@/lib/api';
 import { TechnicalBadge, PaperTape } from './PaperAccents';
 
 const MAX_UPLOAD_SIZE_MB = 10;
