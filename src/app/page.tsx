@@ -10,7 +10,9 @@ import { useSearchParams } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { apiFetch, getApiBaseUrl } from "@/lib/api";
 
-export default function Home() {
+import { Suspense } from "react";
+
+function HomeContent() {
   const { addToast } = useToast();
   const searchParams = useSearchParams();
   const tabFromUrl = searchParams.get('tab');
@@ -174,5 +176,13 @@ export default function Home() {
 
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="p-6 text-(--brand-secondary) font-mono text-xs">Loading Workspace...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }

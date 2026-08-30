@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 
 interface GraphPaperBackgroundProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
 }
 
