@@ -7,6 +7,8 @@ import { getApiBaseUrl, apiFetch } from '@/lib/api';
 import { useTheme } from './ThemeContext';
 import { StatusDot } from './PaperAccents';
 import GraphPaperBackground from './GraphPaperBackground';
+import FloatingCopilot from './FloatingCopilot';
+import GlobalSearch from './GlobalSearch';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -109,18 +111,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <button 
-                                onClick={() => setCmdPaletteOpen(true)}
-                                className="flex items-center gap-3 px-3 py-1.5 bg-(--surface-hover) border border-(--border-color) rounded text-xs text-(--brand-secondary) hover:text-(--foreground) hover:border-blue-400/50 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
-                            >
-                                <span className="flex items-center gap-1.5">
-                                    <svg className="w-3.5 h-3.5 text-(--brand-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                                    Ask AI...
-                                </span>
-                                <kbd className="hidden sm:inline-block font-mono text-[10px] px-1.5 py-0.5 bg-(--surface) border border-(--border-color) rounded text-(--brand-secondary) font-bold">
-                                    ⌘K
-                                </kbd>
-                            </button>
+                            {/* Global Search Component replaces old dummy button */}
+                            <div className="flex-1 max-w-xl mx-4">
+                                <GlobalSearch />
+                            </div>
                             <div className="hidden md:flex items-center gap-4 border-l border-(--border-color) pl-4 ml-4">
                                 <div className="flex items-center gap-2">
                                     <StatusDot status={engineStatus} />
@@ -178,6 +172,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         </div>
                     </div>
                 )}
+                <FloatingCopilot />
             </div>
         </GraphPaperBackground>
     );

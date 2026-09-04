@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import KPICard from './KPICard';
+import PivotTable from './PivotTable';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -18,6 +20,7 @@ import {
     RadialLinearScale,
 } from 'chart.js';
 import { Bar, Line, Pie, Doughnut, Scatter, Radar, PolarArea } from 'react-chartjs-2';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { TechnicalBadge } from './PaperAccents';
 
 ChartJS.register(
@@ -34,7 +37,10 @@ ChartJS.register(
     RadialLinearScale,
 );
 
-export type ChartType = 'bar' | 'line' | 'area' | 'pie' | 'doughnut' | 'scatter' | 'radar' | 'polarArea' | 'horizontalBar';
+// Register datalabels globally but disable by default (enable per-chart)
+ChartJS.register(ChartDataLabels);
+
+export type ChartType = 'bar' | 'line' | 'area' | 'pie' | 'doughnut' | 'scatter' | 'radar' | 'polarArea' | 'horizontalBar' | 'kpi' | 'matrix';
 
 export const CHART_TYPE_OPTIONS: { value: ChartType; label: string; icon: string }[] = [
     { value: 'bar',           label: 'Bar',            icon: '📊' },
@@ -46,6 +52,8 @@ export const CHART_TYPE_OPTIONS: { value: ChartType; label: string; icon: string
     { value: 'doughnut',      label: 'Donut',          icon: '🍩' },
     { value: 'radar',         label: 'Radar',          icon: '🕸️' },
     { value: 'polarArea',     label: 'Polar',          icon: '🎯' },
+    { value: 'kpi',           label: 'KPI',            icon: '#️⃣' },
+    { value: 'matrix',        label: 'Matrix',         icon: '📋' },
 ];
 
 interface VisualizerProps {
@@ -55,6 +63,17 @@ interface VisualizerProps {
     valueKey: string;
     title?: string;
     onDrillDown?: (label: string) => void;
+    seriesData?: Record<string, any[]>;
+    stackMode?: 'stacked' | 'grouped';
+    colorByColumn?: string;
+    // P4: Formatting controls
+    showDataLabels?: boolean;
+    showXAxis?: boolean;
+    showYAxis?: boolean;
+    showGridLines?: boolean;
+    markerSize?: number;
+    // P6: Extra tooltip metrics
+    tooltipExtras?: { key: string; label: string }[];
 }
 
 function getThemeColors() {
@@ -65,7 +84,7 @@ function getThemeColors() {
     return { isDark };
 }
 
-export default function Visualizer({ type, data, labelKey, valueKey, title = '', onDrillDown }: VisualizerProps) {
+export default function Visualizer({ type, data, labelKey, valueKey, title = '', onDrillDown, seriesData, stackMode = 'stacked', colorByColumn, showDataLabels = false, showXAxis = true, showYAxis = true, showGridLines = true, markerSize, tooltipExtras }: VisualizerProps) {
     const [isDark, setIsDark] = useState(false);
 
     useEffect(() => {
@@ -109,10 +128,47 @@ export default function Visualizer({ type, data, labelKey, valueKey, title = '',
         return blueprintPalette[i % blueprintPalette.length];
     });
 
-    // Build dataset
-    const buildDataset = () => {
+    // Build dataset(s)
+    const buildDatasets = () => {
+        // Multi-series mode
+        if (seriesData && Object.keys(seriesData).length > 0) {
+            const seriesNames = Object.keys(seriesData);
+            return seriesNames.map((name, idx) => {
+                const seriesColor = blueprintPalette[idx % blueprintPalette.length];
+                const seriesBorder = seriesColor.replace('0.8', '1');
+                const seriesItems = seriesData[name] || [];
+                
+                if (isRadial) {
+                    return {
+                        label: name,
+                        data: seriesItems.map((item: any) => item[valueKey]),
+                        backgroundColor: seriesColor,
+                        borderColor: seriesBorder,
+                        borderWidth: 2,
+                    };
+                }
+
+                return {
+                    label: name,
+                    data: seriesItems.map((item: any) => item[valueKey]),
+                    backgroundColor: seriesColor,
+                    borderColor: seriesBorder,
+                    borderWidth: 2,
+                    borderRadius: (type === 'bar' || isHorizontal) ? 3 : 0,
+                    tension: 0.35,
+                    fill: false,
+                    pointBackgroundColor: seriesBorder,
+                    pointBorderColor: pointBorderColor,
+                    pointBorderWidth: 2,
+                    pointRadius: (type === 'line' || isArea) ? (markerSize ?? 3) : 0,
+                    pointHoverRadius: (markerSize ?? 3) + 3,
+                };
+            });
+        }
+
+        // Single-series mode (original)
         if (isScatter) {
-            return {
+            return [{
                 label: title || valueKey,
                 data: data.map(item => ({ x: item[labelKey], y: item[valueKey] })),
                 backgroundColor: primaryBg,
@@ -122,22 +178,22 @@ export default function Visualizer({ type, data, labelKey, valueKey, title = '',
                 pointBorderWidth: 2,
                 pointRadius: 5,
                 pointHoverRadius: 8,
-            };
+            }];
         }
 
         if (isRadial) {
-            return {
+            return [{
                 label: title || valueKey,
                 data: data.map(item => item[valueKey]),
                 backgroundColor: expandedPalette,
                 borderColor: expandedPalette.map(c => c.replace('0.8', '1')),
                 borderWidth: 2,
                 hoverOffset: type === 'doughnut' ? 8 : 4,
-            };
+            }];
         }
 
         // Bar, line, area, horizontalBar
-        return {
+        return [{
             label: title || valueKey,
             data: data.map(item => item[valueKey]),
             backgroundColor: isArea ? primaryFill : primaryBg,
@@ -149,14 +205,23 @@ export default function Visualizer({ type, data, labelKey, valueKey, title = '',
             pointBackgroundColor: primaryColor,
             pointBorderColor: pointBorderColor,
             pointBorderWidth: 2,
-            pointRadius: (type === 'line' || isArea) ? 3 : 0,
-            pointHoverRadius: 6,
-        };
+            pointRadius: (type === 'line' || isArea) ? (markerSize ?? 3) : 0,
+            pointHoverRadius: (markerSize ?? 3) + 3,
+        }];
+    };
+
+    // For multi-series, use labels from the first series
+    const getLabels = () => {
+        if (seriesData && Object.keys(seriesData).length > 0) {
+            const firstSeries = Object.values(seriesData)[0] || [];
+            return firstSeries.map((item: any) => item[labelKey]);
+        }
+        return data.map(item => item[labelKey]);
     };
 
     const chartData: ChartData<any> = {
-        labels: data.map(item => item[labelKey]),
-        datasets: [buildDataset()],
+        labels: getLabels(),
+        datasets: buildDatasets(),
     };
 
     const monoFont = 'ui-monospace, SFMono-Regular, monospace';
@@ -164,8 +229,8 @@ export default function Visualizer({ type, data, labelKey, valueKey, title = '',
     const tooltipConfig = {
         backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(30, 41, 59, 0.95)',
         padding: 12,
-        titleFont: { size: 11, family: monoFont, weight: 'bold' as const },
-        bodyFont: { size: 12, family: monoFont },
+        titleFont: { size: 12, family: monoFont, weight: 'bold' as const },
+        bodyFont: { size: 13, family: monoFont },
         cornerRadius: 4,
         displayColors: true,
         boxPadding: 6,
@@ -176,33 +241,37 @@ export default function Visualizer({ type, data, labelKey, valueKey, title = '',
     };
 
     const legendConfig = {
-        display: isRadial,
+        display: isRadial || (seriesData && Object.keys(seriesData).length > 0),
         position: 'bottom' as const,
         labels: {
             usePointStyle: true,
-            padding: 12,
-            font: { family: monoFont, size: 10, weight: 'bold' as const },
+            padding: 14,
+            font: { family: monoFont, size: 12, weight: 'bold' as const },
             color: tickColor,
         },
     };
 
     const scaleConfig = (!isRadial && !isScatter) ? {
         y: {
+            display: showYAxis,
             beginAtZero: true,
+            stacked: (seriesData && Object.keys(seriesData).length > 0 && stackMode === 'stacked') ? true : false,
             border: { display: true, color: borderAxisColor, width: 1 },
-            grid: { display: true, color: gridColor, lineWidth: 1 },
+            grid: { display: showGridLines, color: gridColor, lineWidth: 1 },
             ticks: {
-                font: { family: monoFont, size: 10 },
+                font: { family: monoFont, size: 12 },
                 color: tickColor,
                 padding: 8,
                 maxTicksLimit: 8,
             },
         },
         x: {
+            display: showXAxis,
+            stacked: (seriesData && Object.keys(seriesData).length > 0 && stackMode === 'stacked') ? true : false,
             border: { display: true, color: borderAxisColor, width: 1 },
             grid: { display: false },
             ticks: {
-                font: { family: monoFont, size: 10 },
+                font: { family: monoFont, size: 12 },
                 color: tickColor,
                 padding: 8,
                 maxRotation: 45,
@@ -216,16 +285,67 @@ export default function Visualizer({ type, data, labelKey, valueKey, title = '',
             grid: { color: gridColor },
             angleLines: { color: gridColor },
             pointLabels: {
-                font: { family: monoFont, size: 10 },
+                font: { family: monoFont, size: 12 },
                 color: tickColor,
             },
             ticks: {
-                font: { family: monoFont, size: 9 },
+                font: { family: monoFont, size: 11 },
                 color: tickColor,
                 backdropColor: 'transparent',
             },
         },
     } : undefined);
+
+    // Build tooltip callbacks for extras (P6)
+    const tooltipCallbacks = tooltipExtras && tooltipExtras.length > 0 ? {
+        afterBody: (context: any[]) => {
+            if (!context.length) return '';
+            const idx = context[0].dataIndex;
+            const dataRow = data[idx];
+            if (!dataRow) return '';
+            return tooltipExtras.map(extra => {
+                const val = dataRow[extra.key];
+                return `${extra.label}: ${val != null ? val : '—'}`;
+            }).join('\n');
+        },
+    } : {};
+
+    const resolvedTooltipConfig = {
+        ...tooltipConfig,
+        callbacks: tooltipCallbacks,
+    };
+
+    // Datalabels config — shows on pie/doughnut always, on other charts when showDataLabels=true
+    const datalabelsConfig = (type === 'pie' || type === 'doughnut') ? {
+            color: tickColor,
+            font: { family: monoFont, size: 11, weight: 'bold' as const },
+            formatter: (value: number, ctx: any) => {
+                const dataset = ctx.chart.data.datasets[0];
+                const total = dataset.data.reduce((a: number, b: number) => a + b, 0);
+                const pct = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '';
+                const label = ctx.chart.data.labels?.[ctx.dataIndex] || '';
+                if (total > 0 && (value / total) < 0.05) return '';
+                return `${label}\n${pct}`;
+            },
+            anchor: 'end' as const,
+            align: 'start' as const,
+            offset: 2,
+            clamp: true,
+        } : showDataLabels ? {
+            color: tickColor,
+            font: { family: monoFont, size: 11, weight: 'bold' as const },
+            anchor: 'end' as const,
+            align: 'top' as const,
+            offset: 4,
+            formatter: (value: number) => {
+                if (value == null) return '';
+                const abs = Math.abs(value);
+                if (abs >= 1_000_000) return (value / 1_000_000).toFixed(1) + 'M';
+                if (abs >= 1_000) return (value / 1_000).toFixed(1) + 'K';
+                if (Number.isInteger(value)) return value.toLocaleString();
+                return value.toFixed(1);
+            },
+        } : { display: false };
 
     const options: ChartOptions<any> = {
         responsive: true,
@@ -234,7 +354,8 @@ export default function Visualizer({ type, data, labelKey, valueKey, title = '',
         plugins: {
             legend: legendConfig,
             title: { display: false },
-            tooltip: tooltipConfig,
+            tooltip: resolvedTooltipConfig,
+            datalabels: datalabelsConfig,
         },
         scales: scaleConfig,
         animation: { duration: 800, easing: 'easeOutQuart' as const },
@@ -261,6 +382,63 @@ export default function Visualizer({ type, data, labelKey, valueKey, title = '',
             return (
                 <div className="flex items-center justify-center h-full text-(--brand-secondary) font-bold uppercase text-xs">
                     NO DATA AVAILABLE
+                </div>
+            );
+        }
+
+        // KPI Card — render big number
+        if (type === 'kpi') {
+            const totalValue = data.reduce((sum: number, item: any) => sum + (Number(item[valueKey]) || 0), 0);
+            return (
+                <div className="flex items-center justify-center h-full">
+                    <KPICard
+                        value={totalValue}
+                        label={title || `${valueKey}`}
+                        format="number"
+                    />
+                </div>
+            );
+        }
+
+        // Matrix / Pivot — render when we have series data or at least 2D data
+        if (type === 'matrix') {
+            if (seriesData && colorByColumn) {
+                // Flatten series data into rows for pivot
+                const flatRows: any[] = [];
+                for (const [seriesName, items] of Object.entries(seriesData)) {
+                    for (const item of items) {
+                        flatRows.push({ ...item, [colorByColumn]: seriesName });
+                    }
+                }
+                return (
+                    <PivotTable
+                        data={flatRows}
+                        rowKey={labelKey}
+                        colKey={colorByColumn}
+                        valueKey={valueKey}
+                        title={title}
+                    />
+                );
+            }
+            // Fallback: show data as simple table
+            return (
+                <div className="overflow-auto h-full">
+                    <table className="w-full font-mono text-xs border-collapse">
+                        <thead>
+                            <tr>
+                                <th className="text-left p-2 border-b-2 border-(--border-color) text-[10px] text-(--brand-secondary) uppercase">{labelKey}</th>
+                                <th className="text-right p-2 border-b-2 border-(--border-color) text-[10px] text-(--brand-secondary) uppercase">{valueKey}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map((row: any, i: number) => (
+                                <tr key={i} className="hover:bg-(--surface-hover) transition-colors">
+                                    <td className="p-2 border-b border-(--border-color) text-(--foreground)">{row[labelKey]}</td>
+                                    <td className="p-2 border-b border-(--border-color) text-(--foreground) text-right tabular-nums">{row[valueKey]}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             );
         }

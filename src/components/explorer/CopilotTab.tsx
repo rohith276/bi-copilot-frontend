@@ -3,6 +3,7 @@
 import React from 'react';
 import { PaperTape, TechnicalBadge } from '../PaperAccents';
 import { useToast } from '../Toast';
+import { useVoiceInput } from '@/hooks/useVoiceInput';
 
 function exportToCSV(columns: string[], data: any[], filename: string) {
     const header = columns.join(',');
@@ -47,6 +48,10 @@ export default function CopilotTab({
     nlResponse
 }: CopilotTabProps) {
     const { addToast } = useToast();
+    const { isListening, isSupported, toggleListening } = useVoiceInput((transcript) => {
+        setNlQuery(transcript);
+        addToast('Voice captured — press Run Query', 'success');
+    });
 
     const handlePin = async () => {
         if (!nlResponse) return;
@@ -81,10 +86,24 @@ export default function CopilotTab({
                         type="text"
                         value={nlQuery}
                         onChange={(e) => setNlQuery(e.target.value)}
-                        placeholder="Ask a question about this dataset... e.g. 'Show sales trend for last 6 months'"
+                        placeholder="Ask a question about this dataset... e.g. 'Why did sales drop?'"
                         className="w-full bg-transparent border-none text-foreground px-2 py-2 focus:outline-none placeholder-brand-secondary font-mono text-xs"
                         disabled={nlLoading}
                     />
+                    {isSupported && (
+                        <button
+                            type="button"
+                            onClick={toggleListening}
+                            className={`shrink-0 w-8 h-8 rounded flex items-center justify-center transition-colors ${
+                                isListening
+                                    ? 'bg-rose-500 text-white animate-pulse'
+                                    : 'bg-(--surface-hover) text-(--brand-secondary) hover:text-(--foreground) border border-(--border-color)'
+                            }`}
+                            title={isListening ? 'Listening...' : 'Voice input'}
+                        >
+                            🎤
+                        </button>
+                    )}
                     <button
                         type="submit"
                         className="saas-button saas-button-primary font-mono text-xs uppercase tracking-wider shrink-0"
@@ -118,10 +137,25 @@ export default function CopilotTab({
                         <div className="paper-sheet p-6 relative overflow-hidden font-mono text-xs">
                             <PaperTape className="-right-2 top-2 rotate-3" />
                             <div className="flex items-center justify-between mb-3">
-                                <h4 className="text-[10px] font-bold uppercase text-brand-secondary tracking-widest">AI INSIGHT SPECIFICATION</h4>
-                                <TechnicalBadge text="ANALYSIS" status="blueprint" />
+                                <h4 className="text-[10px] font-bold uppercase text-brand-secondary tracking-widest">
+                                    {nlResponse.rootCause ? 'ROOT-CAUSE ANALYSIS' : 'AI INSIGHT SPECIFICATION'}
+                                </h4>
+                                <TechnicalBadge text={nlResponse.rootCause ? 'RCA' : 'ANALYSIS'} status="blueprint" />
                             </div>
                             <p className="text-foreground leading-relaxed">{nlResponse.insights}</p>
+
+                            {nlResponse.rootCause && (
+                                <div className="mt-3 grid grid-cols-2 gap-2 font-mono text-[10px]">
+                                    <div className="bg-(--surface) border border-(--border-color) rounded p-2">
+                                        <span className="text-(--brand-secondary) uppercase block">Prior</span>
+                                        <span className="font-bold">{nlResponse.rootCause.prior_total?.toLocaleString()}</span>
+                                    </div>
+                                    <div className="bg-(--surface) border border-(--border-color) rounded p-2">
+                                        <span className="text-(--brand-secondary) uppercase block">Recent</span>
+                                        <span className="font-bold">{nlResponse.rootCause.recent_total?.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            )}
                             
                             <div className="mt-4 pt-4 border-t border-border-color">
                                 <button onClick={handlePin} className="w-full saas-button saas-button-secondary uppercase tracking-wider text-[10px] py-2">

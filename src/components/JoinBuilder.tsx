@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { apiFetch } from '@/lib/api';
 import { useToast } from '@/components/Toast';
 import { TechnicalBadge } from '@/components/PaperAccents';
@@ -19,6 +20,7 @@ interface JoinBuilderProps {
 
 export default function JoinBuilder({ currentDatasetId, onJoinComplete }: JoinBuilderProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const [datasets, setDatasets] = useState<DatasetOption[]>([]);
     const [rightId, setRightId] = useState<number | null>(null);
     const [leftCols, setLeftCols] = useState<string[]>([]);
@@ -30,6 +32,19 @@ export default function JoinBuilder({ currentDatasetId, onJoinComplete }: JoinBu
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const { addToast } = useToast();
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsOpen(false);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen]);
 
     // Load available datasets
     useEffect(() => {
@@ -68,6 +83,37 @@ export default function JoinBuilder({ currentDatasetId, onJoinComplete }: JoinBu
         };
         fetchCols();
     }, [rightId]);
+
+    const handleAutoDetect = async () => {
+        if (!rightId) {
+            addToast('Please select a dataset to join with first.', 'error');
+            return;
+        }
+        
+        try {
+            setLoading(true);
+            const data = await apiFetch(`/analytics/suggest-joins`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    left_dataset_id: currentDatasetId,
+                    right_dataset_id: rightId
+                })
+            });
+            
+            if (data && data.suggestions && data.suggestions.length > 0) {
+                const best = data.suggestions[0];
+                setLeftCol(best.left_col);
+                setRightCol(best.right_col);
+                addToast(`Auto-detected join: ${best.left_col} ↔ ${best.right_col} (${(best.confidence * 100).toFixed(0)}% confidence)`, 'success');
+            } else {
+                addToast('No obvious relationships found.', 'error');
+            }
+        } catch (e) {
+            addToast(`Auto-detect failed: ${e instanceof Error ? e.message : 'Unknown error'}`, 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handlePreview = async () => {
         if (!rightId || !leftCol || !rightCol) {
@@ -118,19 +164,17 @@ export default function JoinBuilder({ currentDatasetId, onJoinComplete }: JoinBu
         }
     };
 
-    if (!isOpen) {
-        return (
-            <button
-                onClick={() => setIsOpen(true)}
-                className="saas-button saas-button-secondary font-mono text-[10px] uppercase tracking-wider flex items-center gap-1.5"
-            >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-                Join Datasets
-            </button>
-        );
-    }
+    const triggerButton = (
+        <button
+            onClick={() => setIsOpen(true)}
+            className="saas-button saas-button-secondary font-mono text-[10px] uppercase tracking-wider flex items-center gap-1.5"
+        >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            Join Datasets
+        </button>
+    );
 
     const joinTypes = [
         { value: 'inner', label: 'INNER', desc: 'Only matching rows' },
@@ -140,7 +184,10 @@ export default function JoinBuilder({ currentDatasetId, onJoinComplete }: JoinBu
     ];
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setIsOpen(false)}>
+        <>
+            {triggerButton}
+            {isOpen && mounted && createPortal(
+                <div className="fixed inset-0 bg-black/50 z-100 flex items-center justify-center p-4" onClick={() => setIsOpen(false)}>
             <div className="paper-sheet p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="font-mono font-bold text-sm text-(--foreground) uppercase tracking-widest">Cross-Dataset Join Builder</h2>
@@ -168,9 +215,18 @@ export default function JoinBuilder({ currentDatasetId, onJoinComplete }: JoinBu
 
                     {/* Right dataset */}
                     <div className="space-y-2">
-                        <label className="font-mono text-[10px] text-(--brand-secondary) uppercase tracking-wider font-bold block">
-                            Right Dataset
-                        </label>
+                        <div className="flex justify-between items-end mb-2">
+                            <label className="text-[10px] font-mono text-(--brand-secondary) uppercase tracking-wider font-bold">
+                                Right Dataset
+                            </label>
+                            <button
+                                onClick={handleAutoDetect}
+                                disabled={!rightId || loading}
+                                className="text-[9px] font-mono font-bold uppercase text-(--brand-primary) bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-0.5 rounded transition-colors"
+                            >
+                                ✨ Auto-Detect
+                            </button>
+                        </div>
                         <select
                             value={rightId || ''}
                             onChange={e => { setRightId(Number(e.target.value)); setRightCol(''); }}
@@ -266,6 +322,9 @@ export default function JoinBuilder({ currentDatasetId, onJoinComplete }: JoinBu
                     </div>
                 )}
             </div>
-        </div>
+        </div>,
+        document.body
+        )}
+        </>
     );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { use } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -12,6 +12,8 @@ import GraphPaperBackground from "@/components/GraphPaperBackground";
 import { TechnicalBadge } from "@/components/PaperAccents";
 import JoinBuilder from "@/components/JoinBuilder";
 import ShareDialog from "@/components/ShareDialog";
+import { apiFetch } from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 interface ExplorePageProps {
     params: Promise<{ id: string }>;
@@ -21,9 +23,55 @@ export default function ExplorePage({ params }: ExplorePageProps) {
     const { id } = use(params);
     const searchParams = useSearchParams();
     const datasetId = parseInt(id, 10);
-    const defaultView = searchParams.get("view") === "analytics" ? "analytics" : searchParams.get("view") === "ask" ? "ask" : searchParams.get("view") === "builder" ? "builder" : "explore";
-    const [view, setView] = useState<"explore" | "analytics" | "ask" | "builder">(defaultView as "explore" | "analytics" | "ask" | "builder");
+    const viewParam = searchParams.get("view");
+
+    const [view, setView] = useState<"explore" | "analytics" | "ask" | "builder">(() => {
+        if (viewParam === "analytics" || viewParam === "ask" || viewParam === "builder" || viewParam === "explore") {
+            return viewParam;
+        }
+        if (typeof window !== "undefined") {
+            try {
+                const savedView = localStorage.getItem(`bi_explore_view_${datasetId}`);
+                if (savedView === "analytics" || savedView === "ask" || savedView === "builder" || savedView === "explore") {
+                    return savedView;
+                }
+            } catch {}
+        }
+        return "explore";
+    });
+
+    const handleViewChange = (newView: "explore" | "analytics" | "ask" | "builder") => {
+        setView(newView);
+        if (typeof window !== "undefined") {
+            try {
+                localStorage.setItem(`bi_explore_view_${datasetId}`, newView);
+            } catch {}
+        }
+    };
+
+    // Keep state in sync if URL search param view changes explicitly
+    useEffect(() => {
+        if (viewParam === "analytics" || viewParam === "ask" || viewParam === "builder" || viewParam === "explore") {
+            handleViewChange(viewParam);
+        }
+    }, [viewParam]);
+
     const [shareOpen, setShareOpen] = useState(false);
+    const [generatingDashboard, setGeneratingDashboard] = useState(false);
+    const { addToast } = useToast();
+
+    const handleGenerateDashboard = async () => {
+        setGeneratingDashboard(true);
+        try {
+            const result = await apiFetch(`/analytics/${datasetId}/auto-dashboard`, { method: "POST" });
+            addToast(result.summary || `Generated ${result.pinned_count} visuals`, "success");
+            window.location.href = `/dashboard/${datasetId}`;
+        } catch {
+            addToast("Failed to generate dashboard", "error");
+        } finally {
+            setGeneratingDashboard(false);
+        }
+    };
 
     return (
         <div className="min-h-screen">
@@ -51,7 +99,7 @@ export default function ExplorePage({ params }: ExplorePageProps) {
                     {(["explore", "analytics", "builder", "ask"] as const).map((currentView) => (
                         <button
                             key={currentView}
-                            onClick={() => setView(currentView)}
+                            onClick={() => handleViewChange(currentView)}
                             className={`px-5 py-1.5 rounded text-xs font-mono font-bold uppercase tracking-wider transition-all ${
                                 view === currentView
                                     ? "bg-(--brand-primary) text-white shadow"
@@ -78,6 +126,13 @@ export default function ExplorePage({ params }: ExplorePageProps) {
                     </svg>
                     Collaborate
                 </button>
+                <button
+                    onClick={handleGenerateDashboard}
+                    disabled={generatingDashboard}
+                    className="saas-button saas-button-secondary font-mono text-[10px] uppercase tracking-wider"
+                >
+                    {generatingDashboard ? "Generating..." : "✨ Generate Dashboard"}
+                </button>
                 <Link
                     href={`/dashboard/${datasetId}`}
                     className="saas-button saas-button-primary font-mono text-xs uppercase tracking-wider"
@@ -89,15 +144,18 @@ export default function ExplorePage({ params }: ExplorePageProps) {
             <ShareDialog datasetId={datasetId} isOpen={shareOpen} onClose={() => setShareOpen(false)} />
 
             <div className="max-w-400 mx-auto px-6 py-6 h-full min-h-[calc(100vh-80px)]">
-                {view === "explore" ? (
+                <div className={view === "explore" ? "h-full" : "hidden"}>
                     <DataExplorer datasetId={datasetId} />
-                ) : view === "analytics" ? (
+                </div>
+                <div className={view === "analytics" ? "h-full" : "hidden"}>
                     <AnalyticsExplorer datasetId={datasetId} activeModule={searchParams.get("module") || undefined} />
-                ) : view === "builder" ? (
+                </div>
+                <div className={view === "builder" ? "h-full" : "hidden"}>
                     <VisualBuilder datasetId={datasetId} />
-                ) : (
+                </div>
+                <div className={view === "ask" ? "h-full" : "hidden"}>
                     <AskAIExplorer datasetId={datasetId} />
-                )}
+                </div>
             </div>
         </div>
     );

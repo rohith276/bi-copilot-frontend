@@ -5,6 +5,7 @@ import Dashboard from "@/components/Dashboard";
 import Link from "next/link";
 import GraphPaperBackground from "@/components/GraphPaperBackground";
 import { TechnicalBadge, PaperTape } from "@/components/PaperAccents";
+import { getApiBaseUrl } from "@/lib/api";
 
 interface DashboardPageProps {
     params: Promise<{ id: string }>;
@@ -13,10 +14,10 @@ interface DashboardPageProps {
 export default function DashboardPage({ params }: DashboardPageProps) {
     const { id } = use(params);
     const datasetId = parseInt(id, 10);
+    const apiBase = getApiBaseUrl().replace(/\/$/, "");
 
     return (
         <GraphPaperBackground className="min-h-screen">
-            {/* Top Navigation Header */}
             <nav className="sticky top-0 z-50 bg-surface-100/90 backdrop-blur-md border-b border-border-color px-8 py-3 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-6">
                     <Link
@@ -40,7 +41,15 @@ export default function DashboardPage({ params }: DashboardPageProps) {
 
                 <div className="flex items-center gap-3">
                     <a
-                        href={`http://localhost:8000/exports/${datasetId}/markdown`}
+                        href={`${apiBase}/exports/${datasetId}/slides`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono text-xs uppercase tracking-wider flex items-center gap-2 px-4 py-2 rounded bg-(--surface-hover) text-(--foreground) hover:bg-(--surface) transition-colors border border-(--border-color)"
+                    >
+                        📊 Export Slides
+                    </a>
+                    <a
+                        href={`${apiBase}/exports/${datasetId}/markdown`}
                         download={`dashboard_export_${datasetId}.md`}
                         className="font-mono text-xs uppercase tracking-wider flex items-center gap-2 px-4 py-2 rounded bg-(--brand-primary) text-white hover:opacity-90 transition-opacity shadow-sm border border-(--brand-primary)"
                     >
@@ -58,7 +67,6 @@ export default function DashboardPage({ params }: DashboardPageProps) {
                 </div>
             </nav>
 
-            {/* Page Header */}
             <div className="max-w-7xl mx-auto px-8 pt-8 pb-6">
                 <div className="paper-sheet p-6 mb-8 relative overflow-hidden">
                     <PaperTape className="right-8 top-3 rotate-3" />

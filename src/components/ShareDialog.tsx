@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { apiFetch } from '@/lib/api';
 import { useToast } from '@/components/Toast';
 import { TechnicalBadge } from '@/components/PaperAccents';
@@ -23,7 +24,21 @@ export default function ShareDialog({ datasetId, isOpen, onClose }: ShareDialogP
     const [email, setEmail] = useState('');
     const [permission, setPermission] = useState<'view' | 'edit'>('view');
     const [loading, setLoading] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const { addToast } = useToast();
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
 
     const loadCollaborators = async () => {
         try {
@@ -69,10 +84,10 @@ export default function ShareDialog({ datasetId, isOpen, onClose }: ShareDialogP
         }
     };
 
-    if (!isOpen) return null;
+    if (!isOpen || !mounted) return null;
 
-    return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    return createPortal(
+        <div className="fixed inset-0 bg-black/50 z-100 flex items-center justify-center p-4 backdrop-blur-xs" onClick={onClose}>
             <div className="paper-sheet p-6 w-full max-w-lg" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-5">
                     <div>
@@ -150,6 +165,7 @@ export default function ShareDialog({ datasetId, isOpen, onClose }: ShareDialogP
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

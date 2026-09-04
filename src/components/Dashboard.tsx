@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useToast } from './Toast';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, getApiBaseUrl } from '@/lib/api';
 import Visualizer from './Visualizer';
 import { PaperTape, TechnicalBadge, IsometricDatabase } from './PaperAccents';
 import Link from 'next/link';
@@ -26,6 +26,7 @@ export default function Dashboard({ datasetId }: DashboardProps) {
     const [expandedSql, setExpandedSql] = useState<number | null>(null);
     const [expandedCard, setExpandedCard] = useState<number | null>(null);
     const [refreshing, setRefreshing] = useState(false);
+    const [generating, setGenerating] = useState(false);
     const [activeFilter, setActiveFilter] = useState<{ column: string; value: string } | null>(null);
     const { addToast } = useToast();
 
@@ -112,6 +113,19 @@ export default function Dashboard({ datasetId }: DashboardProps) {
         }
     };
 
+    const handleGenerateDashboard = async () => {
+        setGenerating(true);
+        try {
+            const result = await apiFetch(`/analytics/${datasetId}/auto-dashboard`, { method: 'POST' });
+            addToast(result.summary || `Generated ${result.pinned_count} dashboard visuals`, 'success');
+            await loadDashboard();
+        } catch (e) {
+            addToast('Failed to generate dashboard', 'error');
+        } finally {
+            setGenerating(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-75 paper-sheet p-8 font-mono text-xs">
@@ -132,9 +146,18 @@ export default function Dashboard({ datasetId }: DashboardProps) {
                 <p className="font-mono text-xs text-(--brand-secondary) max-w-md mb-6">
                     You haven&apos;t pinned any AI insights or visual queries to this dashboard yet.
                 </p>
-                <Link href={`/explore/${datasetId}?view=builder`} className="saas-button saas-button-primary font-mono text-xs uppercase tracking-wider">
-                    Open Visual Builder →
-                </Link>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                    <button
+                        onClick={handleGenerateDashboard}
+                        disabled={generating}
+                        className="saas-button saas-button-primary font-mono text-xs uppercase tracking-wider flex items-center gap-2"
+                    >
+                        {generating ? 'Generating...' : '✨ Generate Dashboard with AI'}
+                    </button>
+                    <Link href={`/explore/${datasetId}?view=builder`} className="saas-button saas-button-secondary font-mono text-xs uppercase tracking-wider">
+                        Open Visual Builder →
+                    </Link>
+                </div>
             </div>
         );
     }
@@ -150,6 +173,13 @@ export default function Dashboard({ datasetId }: DashboardProps) {
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleGenerateDashboard}
+                        disabled={generating}
+                        className="font-mono text-[10px] text-(--brand-primary) hover:underline uppercase tracking-wider flex items-center gap-1"
+                    >
+                        {generating ? 'Generating...' : '✨ AI Generate'}
+                    </button>
                     <button
                         onClick={handleRefresh}
                         disabled={refreshing}
@@ -177,6 +207,24 @@ export default function Dashboard({ datasetId }: DashboardProps) {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                         </svg>
                         Share
+                    </button>
+                    <button
+                        onClick={() => {
+                            const base = getApiBaseUrl().replace(/\/$/, '');
+                            window.open(`${base}/exports/${datasetId}/slides`, '_blank');
+                        }}
+                        className="font-mono text-[10px] text-(--brand-secondary) hover:text-(--foreground) uppercase tracking-wider transition-colors"
+                    >
+                        📊 Slides
+                    </button>
+                    <button
+                        onClick={() => {
+                            const base = getApiBaseUrl().replace(/\/$/, '');
+                            window.open(`${base}/exports/${datasetId}/markdown`, '_blank');
+                        }}
+                        className="font-mono text-[10px] text-(--brand-secondary) hover:text-(--foreground) uppercase tracking-wider transition-colors"
+                    >
+                        ⬇ Report
                     </button>
                     <Link 
                         href={`/explore/${datasetId}?view=builder`} 
