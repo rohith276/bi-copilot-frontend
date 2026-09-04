@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { IsometricCube } from "@/components/PaperAccents";
 import Visualizer, { CHART_TYPE_OPTIONS, type ChartType } from "@/components/Visualizer";
 import { apiFetch } from "@/lib/api";
@@ -11,6 +11,17 @@ interface DatasetStats {
     name: string;
     bi_type: string;
 }
+
+type Granularity = "day" | "week" | "month" | "quarter" | "year";
+type SortOrder = "asc" | "desc" | null;
+
+const GRANULARITY_OPTIONS: { value: Granularity; label: string }[] = [
+    { value: "day", label: "Day" },
+    { value: "week", label: "Week" },
+    { value: "month", label: "Month" },
+    { value: "quarter", label: "Quarter" },
+    { value: "year", label: "Year" },
+];
 
 export default function VisualBuilder({ datasetId }: { datasetId: number }) {
     const [stats, setStats] = useState<DatasetStats[] | null>(null);
@@ -26,6 +37,19 @@ export default function VisualBuilder({ datasetId }: { datasetId: number }) {
     const [drillPath, setDrillPath] = useState<{ column: string; value: string }[]>([]);
     const { addToast } = useToast();
 
+    // ── Data Scope filter state ──────────────────────────────────────
+    const [granularity, setGranularity] = useState<Granularity | null>(null);
+    const [sortOrder, setSortOrder] = useState<SortOrder>(null);
+    const [topN, setTopN] = useState<number | null>(null);
+    const [rangeMin, setRangeMin] = useState<string>("");
+    const [rangeMax, setRangeMax] = useState<string>("");
+    const [scopeExpanded, setScopeExpanded] = useState(true);
+
+    // ── Metadata from backend response ───────────────────────────────
+    const [xColumnType, setXColumnType] = useState<string | null>(null);
+    const [availableRange, setAvailableRange] = useState<{ min: string; max: string } | null>(null);
+    const [appliedGranularity, setAppliedGranularity] = useState<string | null>(null);
+
     useEffect(() => {
         const fetchStats = async () => {
             try {
@@ -40,13 +64,25 @@ export default function VisualBuilder({ datasetId }: { datasetId: number }) {
         fetchStats();
     }, [datasetId]);
 
+    // Reset scope filters when x-axis changes
+    useEffect(() => {
+        setGranularity(null);
+        setRangeMin("");
+        setRangeMax("");
+        setTopN(null);
+        setSortOrder(null);
+        setXColumnType(null);
+        setAvailableRange(null);
+        setAppliedGranularity(null);
+    }, [xAxis]);
+
     useEffect(() => {
         if (xAxis && yAxis) {
             executeQuery();
         }
-    }, [xAxis, yAxis, aggregate, drillPath]);
+    }, [xAxis, yAxis, aggregate, drillPath, chartType, granularity, sortOrder, topN, rangeMin, rangeMax]);
 
-    const executeQuery = async () => {
+    const executeQuery = useCallback(async () => {
         setQuerying(true);
         try {
             const data = await apiFetch(`/analytics/${datasetId}/visual-query`, {
@@ -56,15 +92,25 @@ export default function VisualBuilder({ datasetId }: { datasetId: number }) {
                     y_axis: yAxis,
                     aggregate,
                     filters: drillPath.map(d => ({ column: d.column, value: d.value })),
+                    chart_type: chartType,
+                    date_granularity: granularity || undefined,
+                    sort_order: sortOrder || undefined,
+                    limit: topN || undefined,
+                    range_min: rangeMin || undefined,
+                    range_max: rangeMax || undefined,
                 })
             });
             setQueryData(data);
+            // Update metadata from response
+            if (data.x_column_type) setXColumnType(data.x_column_type);
+            if (data.available_range) setAvailableRange(data.available_range);
+            if (data.applied_granularity) setAppliedGranularity(data.applied_granularity);
         } catch (err) {
             console.error("Failed to execute visual query", err);
         } finally {
             setQuerying(false);
         }
-    };
+    }, [datasetId, xAxis, yAxis, aggregate, drillPath, chartType, granularity, sortOrder, topN, rangeMin, rangeMax]);
 
     const handleDragStart = (e: React.DragEvent, colName: string, biType: string) => {
         e.dataTransfer.setData("colName", colName);
@@ -120,6 +166,11 @@ export default function VisualBuilder({ datasetId }: { datasetId: number }) {
             addToast('Failed to pin to dashboard', 'error');
         }
     };
+
+    const isDateAxis = xColumnType === "date";
+    const hasData = queryData?.result?.data?.length > 0;
+    const totalRowsBeforeLimit = queryData?.result?.total_rows || 0;
+    const displayedRows = queryData?.result?.data?.length || 0;
 
     return (
         <div className="flex gap-4 h-full">
@@ -245,6 +296,244 @@ export default function VisualBuilder({ datasetId }: { datasetId: number }) {
                     </div>
                 </div>
 
+                {/* ── DATA SCOPE TOOLBAR ─────────────────────────────────────── */}
+                {xAxis && yAxis && (
+                    <div className="paper-sheet overflow-hidden transition-all duration-300">
+                        {/* Header — always visible */}
+                        <button
+                            onClick={() => setScopeExpanded(!scopeExpanded)}
+                            className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-(--surface-hover) transition-colors"
+                        >
+                            <div className="flex items-center gap-2">
+                                <span className="font-mono text-[10px] font-bold text-(--brand-secondary) uppercase tracking-widest">
+                                    ⊞ Data Scope
+                                </span>
+                                {/* Active filter indicators */}
+                                {(granularity || topN || rangeMin || rangeMax || sortOrder) && (
+                                    <div className="flex items-center gap-1">
+                                        {appliedGranularity && (
+                                            <span className="bg-(--brand-primary)/15 text-(--brand-primary) font-mono text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">
+                                                {appliedGranularity}
+                                            </span>
+                                        )}
+                                        {topN && (
+                                            <span className="bg-amber-500/15 text-amber-600 font-mono text-[9px] px-1.5 py-0.5 rounded font-bold">
+                                                Top {topN}
+                                            </span>
+                                        )}
+                                        {(rangeMin || rangeMax) && (
+                                            <span className="bg-emerald-500/15 text-emerald-600 font-mono text-[9px] px-1.5 py-0.5 rounded font-bold">
+                                                Range
+                                            </span>
+                                        )}
+                                        {sortOrder && (
+                                            <span className="bg-purple-500/15 text-purple-600 font-mono text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">
+                                                {sortOrder}
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            <span className={`text-(--brand-secondary) text-xs transition-transform duration-200 ${scopeExpanded ? 'rotate-180' : ''}`}>
+                                ▼
+                            </span>
+                        </button>
+
+                        {/* Collapsible body */}
+                        {scopeExpanded && (
+                            <div className="px-4 pb-4 pt-1 border-t border-(--border-color) space-y-3">
+                                {/* Row 1: Granularity (date only) + Sort */}
+                                <div className="flex items-end gap-4 flex-wrap">
+                                    {/* Date Granularity Pills */}
+                                    {isDateAxis && (
+                                        <div className="flex-1 min-w-50">
+                                            <label className="block font-mono text-[9px] font-bold text-(--brand-secondary) uppercase tracking-widest mb-1.5">
+                                                Granularity
+                                            </label>
+                                            <div className="flex gap-1">
+                                                {GRANULARITY_OPTIONS.map(opt => (
+                                                    <button
+                                                        key={opt.value}
+                                                        onClick={() => setGranularity(
+                                                            granularity === opt.value ? null : opt.value
+                                                        )}
+                                                        className={`
+                                                            font-mono text-[10px] px-2.5 py-1.5 rounded transition-all font-bold uppercase tracking-wider
+                                                            ${(granularity || appliedGranularity) === opt.value
+                                                                ? 'bg-(--brand-primary) text-white shadow-sm'
+                                                                : 'bg-(--surface) border border-(--border-color) text-(--brand-secondary) hover:border-(--brand-primary) hover:text-(--foreground)'
+                                                            }
+                                                        `}
+                                                    >
+                                                        {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Sort Control */}
+                                    <div className="min-w-30">
+                                        <label className="block font-mono text-[9px] font-bold text-(--brand-secondary) uppercase tracking-widest mb-1.5">
+                                            Sort by Metric
+                                        </label>
+                                        <div className="flex gap-1">
+                                            <button
+                                                onClick={() => setSortOrder(sortOrder === "desc" ? null : "desc")}
+                                                className={`
+                                                    font-mono text-[10px] px-2.5 py-1.5 rounded transition-all font-bold
+                                                    ${sortOrder === "desc"
+                                                        ? 'bg-purple-600 text-white shadow-sm'
+                                                        : 'bg-(--surface) border border-(--border-color) text-(--brand-secondary) hover:border-purple-500 hover:text-(--foreground)'
+                                                    }
+                                                `}
+                                            >
+                                                ↓ High
+                                            </button>
+                                            <button
+                                                onClick={() => setSortOrder(sortOrder === "asc" ? null : "asc")}
+                                                className={`
+                                                    font-mono text-[10px] px-2.5 py-1.5 rounded transition-all font-bold
+                                                    ${sortOrder === "asc"
+                                                        ? 'bg-purple-600 text-white shadow-sm'
+                                                        : 'bg-(--surface) border border-(--border-color) text-(--brand-secondary) hover:border-purple-500 hover:text-(--foreground)'
+                                                    }
+                                                `}
+                                            >
+                                                ↑ Low
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Row 2: Range Filter + Top N */}
+                                <div className="flex items-end gap-4 flex-wrap">
+                                    {/* Date Range */}
+                                    {isDateAxis && (
+                                        <div className="flex-1 min-w-70">
+                                            <label className="block font-mono text-[9px] font-bold text-(--brand-secondary) uppercase tracking-widest mb-1.5">
+                                                Date Range
+                                            </label>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="date"
+                                                    value={rangeMin}
+                                                    min={availableRange?.min}
+                                                    max={availableRange?.max}
+                                                    onChange={(e) => setRangeMin(e.target.value)}
+                                                    className="bg-(--surface) border border-(--border-color) font-mono text-[10px] px-2 py-1.5 rounded text-(--foreground) outline-none focus:border-(--brand-primary) w-36"
+                                                    placeholder="Start"
+                                                />
+                                                <span className="font-mono text-[10px] text-(--brand-secondary) font-bold">→</span>
+                                                <input
+                                                    type="date"
+                                                    value={rangeMax}
+                                                    min={availableRange?.min}
+                                                    max={availableRange?.max}
+                                                    onChange={(e) => setRangeMax(e.target.value)}
+                                                    className="bg-(--surface) border border-(--border-color) font-mono text-[10px] px-2 py-1.5 rounded text-(--foreground) outline-none focus:border-(--brand-primary) w-36"
+                                                    placeholder="End"
+                                                />
+                                                {(rangeMin || rangeMax) && (
+                                                    <button
+                                                        onClick={() => { setRangeMin(""); setRangeMax(""); }}
+                                                        className="text-rose-500 hover:text-rose-400 font-mono text-[10px] font-bold px-1.5 py-1 rounded hover:bg-rose-500/10 transition-colors"
+                                                        title="Clear range"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {availableRange && (
+                                                <p className="font-mono text-[8px] text-(--brand-secondary) mt-1 opacity-60">
+                                                    Available: {availableRange.min} → {availableRange.max}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Top N Control */}
+                                    <div className="min-w-40">
+                                        <label className="block font-mono text-[9px] font-bold text-(--brand-secondary) uppercase tracking-widest mb-1.5">
+                                            Limit Results
+                                        </label>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="font-mono text-[10px] text-(--brand-secondary) font-bold">Top</span>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                max={1000}
+                                                value={topN || ""}
+                                                onChange={(e) => {
+                                                    const val = e.target.value ? parseInt(e.target.value) : null;
+                                                    setTopN(val && val > 0 ? val : null);
+                                                }}
+                                                placeholder="All"
+                                                className="bg-(--surface) border border-(--border-color) font-mono text-[10px] px-2 py-1.5 rounded text-(--foreground) outline-none focus:border-(--brand-primary) w-16 text-center"
+                                            />
+                                            <span className="font-mono text-[9px] text-(--brand-secondary)">results</span>
+                                            {topN && (
+                                                <button
+                                                    onClick={() => setTopN(null)}
+                                                    className="text-rose-500 hover:text-rose-400 font-mono text-[10px] font-bold px-1 rounded hover:bg-rose-500/10 transition-colors"
+                                                    title="Show all"
+                                                >
+                                                    ✕
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Quick Presets */}
+                                    <div className="min-w-25">
+                                        <label className="block font-mono text-[9px] font-bold text-(--brand-secondary) uppercase tracking-widest mb-1.5">
+                                            Quick Set
+                                        </label>
+                                        <div className="flex gap-1">
+                                            {[5, 10, 25].map(n => (
+                                                <button
+                                                    key={n}
+                                                    onClick={() => setTopN(topN === n ? null : n)}
+                                                    className={`
+                                                        font-mono text-[9px] px-2 py-1.5 rounded transition-all font-bold
+                                                        ${topN === n
+                                                            ? 'bg-amber-500 text-white shadow-sm'
+                                                            : 'bg-(--surface) border border-(--border-color) text-(--brand-secondary) hover:border-amber-500 hover:text-(--foreground)'
+                                                        }
+                                                    `}
+                                                >
+                                                    {n}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Active filters summary */}
+                                {totalRowsBeforeLimit > 0 && displayedRows < totalRowsBeforeLimit && (
+                                    <div className="flex items-center gap-2 pt-1 border-t border-(--border-color)">
+                                        <span className="font-mono text-[9px] text-amber-600 font-bold uppercase">
+                                            ⚡ Showing {displayedRows} of {totalRowsBeforeLimit} groups
+                                        </span>
+                                        <button
+                                            onClick={() => {
+                                                setGranularity(null);
+                                                setTopN(null);
+                                                setRangeMin("");
+                                                setRangeMax("");
+                                                setSortOrder(null);
+                                            }}
+                                            className="font-mono text-[9px] text-rose-500 hover:text-rose-400 font-bold uppercase hover:underline"
+                                        >
+                                            Reset All
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Canvas Area */}
                 <div className="paper-sheet flex-1 p-4 flex flex-col relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full" style={{ backgroundImage: 'linear-gradient(var(--border-color) 1px, transparent 1px), linear-gradient(90deg, var(--border-color) 1px, transparent 1px)', backgroundSize: '40px 40px', opacity: 0.15, pointerEvents: 'none' }} />
@@ -257,8 +546,13 @@ export default function VisualBuilder({ datasetId }: { datasetId: number }) {
                         {queryData && (
                             <div className="flex items-center gap-2">
                                 <span className="font-mono text-[10px] text-(--brand-secondary)">
-                                    {queryData.result?.data?.length || 0} rows
+                                    {displayedRows}{totalRowsBeforeLimit > displayedRows ? ` / ${totalRowsBeforeLimit}` : ''} rows
                                 </span>
+                                {appliedGranularity && (
+                                    <span className="font-mono text-[9px] bg-(--brand-primary)/10 text-(--brand-primary) px-1.5 py-0.5 rounded font-bold uppercase">
+                                        by {appliedGranularity}
+                                    </span>
+                                )}
                                 <button onClick={handlePin} className="bg-(--brand-primary) text-white font-mono text-[10px] px-3 py-1.5 rounded hover:opacity-90 transition-opacity uppercase tracking-wider flex items-center gap-1.5">
                                     📌 Pin to Dashboard
                                 </button>
@@ -279,7 +573,7 @@ export default function VisualBuilder({ datasetId }: { datasetId: number }) {
                                 type={chartType}
                                 labelKey={xAxis}
                                 valueKey="agg_value"
-                                title={`${aggregate.toUpperCase()}(${yAxis}) by ${xAxis}`}
+                                title={`${aggregate.toUpperCase()}(${yAxis}) by ${xAxis}${appliedGranularity ? ` [${appliedGranularity}]` : ''}`}
                                 onDrillDown={(label) => {
                                     setDrillPath(prev => [...prev, { column: xAxis, value: label }]);
                                 }}
