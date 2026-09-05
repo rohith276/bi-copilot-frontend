@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BI-Copilot — Presentation Suite & Slide Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --background: #fbfbfa;
+      --foreground: #1c1d21;
+      --surface: #ffffff;
+      --surface-hover: #f3f4f6;
+      --surface-muted: #e5e7eb;
+      --border-color: #d1d5db;
+      --border-subtle: #e5e7eb;
+      --brand-primary: #1e3a8a;
+      --brand-hover: #1e40af;
+      --brand-secondary: #4b5563;
+      --status-success: #059669;
+      --status-warning: #d97706;
+      --status-danger: #dc2626;
+      --graph-line: rgba(0, 0, 0, 0.07);
+      --graph-line-spotlight: #18181b;
+      --tape-bg: rgba(251, 191, 36, 0.38);
+      --tape-border: rgba(217, 119, 6, 0.5);
+      --card-shadow: 0 4px 14px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    html.dark {
+      --background: #0b0f17;
+      --foreground: #f3f4f6;
+      --surface: #111827;
+      --surface-hover: #1f2937;
+      --surface-muted: #374151;
+      --border-color: #1f2937;
+      --border-subtle: #374151;
+      --brand-primary: #3b82f6;
+      --brand-hover: #2563eb;
+      --brand-secondary: #9ca3af;
+      --status-success: #10b981;
+      --status-warning: #f59e0b;
+      --status-danger: #ef4444;
+      --graph-line: rgba(255, 255, 255, 0.07);
+      --graph-line-spotlight: #38bdf8;
+      --tape-bg: rgba(217, 119, 6, 0.25);
+      --tape-border: rgba(245, 158, 11, 0.4);
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      position: relative;
+    }
+
+    /* Graph Paper Background */
+    .graph-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      background-image: 
+        linear-gradient(to right, var(--graph-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--graph-line) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .graph-spotlight {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      background-image: 
+        linear-gradient(to right, var(--graph-line-spotlight) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--graph-line-spotlight) 1px, transparent 1px);
+      background-size: 20px 20px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      mask-image: radial-gradient(circle 100px at var(--mouse-x, -200px) var(--mouse-y, -200px), black 0%, transparent 80%);
+      -webkit-mask-image: radial-gradient(circle 100px at var(--mouse-x, -200px) var(--mouse-y, -200px), black 0%, transparent 80%);
+    }
+
+    /* Hub Card Container */
+    .hub-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 980px;
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: var(--card-shadow);
+      padding: 44px;
+    }
+
+    /* Paper Tape Accents */
+    .paper-tape {
+      position: absolute;
+      height: 14px;
+      width: 65px;
+      background-color: var(--tape-bg);
+      border: 1px dashed var(--tape-border);
+      z-index: 25;
+      pointer-events: none;
+    }
+    .tape-top-left {
+      top: -6px;
+      left: 60px;
+      transform: rotate(-2.5deg);
+    }
+    .tape-top-right {
+      top: -6px;
+      right: 60px;
+      transform: rotate(2.5deg);
+    }
+
+    /* Top Hub Header */
+    .hub-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+    }
+
+    .badge-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .logo-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.75rem;
+      background: var(--brand-primary);
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .live-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--status-success);
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .live-badge:hover {
+      background: rgba(16, 185, 129, 0.2);
+    }
+
+    .tech-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border-color);
+      color: var(--brand-secondary);
+    }
+
+    .hub-title {
+      font-size: 1.95rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--foreground);
+    }
+
+    .hub-subtitle {
+      font-size: 0.925rem;
+      color: var(--brand-secondary);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .control-btn {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      color: var(--foreground);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .control-btn:hover {
+      background: var(--surface-hover);
+      border-color: var(--brand-primary);
+    }
+
+    .lang-toggle-btn {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      color: var(--foreground);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .lang-pill {
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+
+    .lang-pill.active {
+      background: var(--brand-primary);
+      color: #fff;
+    }
+
+    /* Deck Selection Grid */
+    .deck-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .deck-card {
+      background: var(--surface);
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .deck-card:hover {
+      border-color: var(--brand-primary);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      transform: translateY(-3px);
+    }
+
+    .deck-card-top {
+      margin-bottom: 20px;
+    }
+
+    .card-edition-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .deck-card-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--foreground);
+      margin-bottom: 8px;
+    }
+
+    .deck-card-desc {
+      font-size: 0.85rem;
+      color: var(--brand-secondary);
+      line-height: 1.6;
+    }
+
+    .deck-features {
+      margin: 16px 0;
+      list-style: none;
+      font-size: 0.8125rem;
+      color: var(--brand-secondary);
+      line-height: 1.8;
+    }
+
+    .deck-features li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .deck-features li strong {
+      color: var(--foreground);
+    }
+
+    .launch-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--brand-primary);
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.875rem;
+      padding: 10px 18px;
+      border-radius: 4px;
+      transition: background 0.15s ease;
+    }
+
+    .launch-btn:hover {
+      background: var(--brand-hover);
+    }
+
+    /* Live Deployment Banner */
+    .live-banner {
+      background: var(--surface-hover);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--status-success);
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .live-banner-text {
+      font-size: 0.8125rem;
+      color: var(--foreground);
+    }
+
+    .live-banner-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--status-success);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .live-banner-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Shortcuts Footer Bar */
+    .shortcuts-footer {
+      background: var(--surface-hover);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .shortcuts-list {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--brand-secondary);
+      flex-wrap: wrap;
+    }
+
+    .kbd-chip {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-weight: 700;
+      color: var(--foreground);
+    }
+
+    /* Bilingual Toggle State */
+    body.lang-ja .en-text {
+      display: none !important;
+    }
+    body.lang-en .ja-text {
+      display: none !important;
+    }
+  </style>
+</head>
+<body class="lang-en">
+
+  <!-- Interactive Graph Spotlight -->
+  <div class="graph-bg"></div>
+  <div class="graph-spotlight" id="graphSpotlight"></div>
+
+  <main class="hub-container">
+    <div class="paper-tape tape-top-left"></div>
+    <div class="paper-tape tape-top-right"></div>
+
+    <header class="hub-header">
+      <div>
+        <div class="badge-bar">
+          <span class="logo-badge">BI-COPILOT</span>
+          <a href="https://bicopilot.vercel.app" target="_blank" rel="noopener noreferrer" class="live-badge">
+            <span style="display:inline-block; width:7px; height:7px; background:var(--status-success); border-radius:50%;"></span>
+            <span>Live: bicopilot.vercel.app</span>
+          </a>
+          <span class="tech-pill">Next.js 16 + FastAPI</span>
+          <span class="tech-pill">Bilingual EN / 日本語</span>
+        </div>
+        <h1 class="hub-title">
+          <span class="en-text">Project Presentation Suite</span>
+          <span class="ja-text">プロジェクト発表スライド</span>
+        </h1>
+        <p class="hub-subtitle">
+          <span class="en-text">Choose between the 10-minute Product Application Overview (11 slides) or the Complete Technical Deep Dive (22 slides). Verified against live codebase data.</span>
+          <span class="ja-text">10分でわかるソフトウェア製品概要（11枚）と、くわしい技術解説版（22枚）があります。実際のコードとテスト結果をもとに作られています。</span>
+        </p>
+      </div>
+
+      <div class="header-controls">
+        <button class="control-btn" id="btnTheme">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Dark</span>
+        </button>
+        <button class="lang-toggle-btn" id="btnLang">
+          <span class="lang-pill active" id="pillEn">EN</span>
+          <span>/</span>
+          <span class="lang-pill" id="pillJa">日本語</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Live Site Banner -->
+    <div class="live-banner">
+      <div class="live-banner-text">
+        <strong style="color:var(--foreground);">
+          <span class="en-text">Live Production Deployment:</span>
+          <span class="ja-text">公開中のWebサイト:</span>
+        </strong>
+        <span class="en-text"> This system is publicly deployed and testable online right now.</span>
+        <span class="ja-text"> インターネット上でいつでも実際に使うことができます。</span>
+      </div>
+      <a href="https://bicopilot.vercel.app" target="_blank" rel="noopener noreferrer" class="live-banner-link">
+        <span>https://bicopilot.vercel.app</span>
+        <span>↗</span>
+      </a>
+    </div>
+
+    <div class="deck-grid">
+      <!-- Short Deck Card -->
+      <div class="deck-card">
+        <div class="deck-card-top">
+          <div class="card-edition-tag" style="color: var(--status-success);">⚡ PRODUCT APPLICATION OVERVIEW • 11 SLIDES</div>
+          <h2 class="deck-card-title">
+            <span class="en-text">Software Product Application Presentation</span>
+            <span class="ja-text">ソフトウェア製品・機能解説版 (全11枚)</span>
+          </h2>
+          <p class="deck-card-desc">
+            <span class="en-text">Designed for comprehensive demonstration of BI-Copilot's software architecture, field user research (clothing, cafe, restaurant), 1:1 problem-to-feature mapping, 5 analytics engines, UI/UX craft, tech stack, and live deployment.</span>
+            <span class="ja-text">BI-Copilotのソフトウェア設計、現場ユーザー調査（アパレル・カフェ・飲食店）、課題と機能の完全対応、5大分析エンジン、UI/UXデザイン、技術構成、本番デプロイ環境をわかりやすく解説したスライドです。</span>
+          </p>
+
+          <ul class="deck-features">
+            <li><span>✓</span> <strong><span class="en-text">Time:</span><span class="ja-text">時間:</span></strong> <span class="en-text">~10 minutes</span><span class="ja-text">約10分</span></li>
+            <li><span>✓</span> <strong><span class="en-text">Slides:</span><span class="ja-text">枚数:</span></strong> 11 Slides</li>
+            <li><span>✓</span> <strong><span class="en-text">Contents:</span><span class="ja-text">内容:</span></strong> <span class="en-text">User Research, Problem Matrix, UI/UX, 5 Engines, Tech Stack, Roadmap</span><span class="ja-text">現場調査、課題・機能対比、UI/UX、5大エンジン、技術構成、実機デモ</span></li>
+            <li><span>✓</span> <strong><span class="en-text">Controls:</span><span class="ja-text">操作:</span></strong> <span class="en-text">EN/JA toggle, Theme switch, Grid overview (Key: O)</span><span class="ja-text">英語/日本語の切替、ダークモード、スライド一覧（Oキー）</span></li>
+          </ul>
+        </div>
+
+        <a href="bi_copilot_short.html" class="launch-btn">
+          <span>▶</span>
+          <span class="en-text">Launch Product Overview (11 Slides)</span>
+          <span class="ja-text">製品解説スライドを開く (全11枚)</span>
+        </a>
+      </div>
+
+      <!-- Full Deck Card -->
+      <div class="deck-card" style="border-color: var(--brand-primary);">
+        <div class="deck-card-top">
+          <div class="card-edition-tag" style="color: var(--brand-primary);">📖 TIP-TO-TOP DEEP DIVE • 22 SLIDES</div>
+          <h2 class="deck-card-title">
+            <span class="en-text">Comprehensive Technical Deck</span>
+            <span class="ja-text">詳細技術版スライド (完全版)</span>
+          </h2>
+          <p class="deck-card-desc">
+            <span class="en-text">Complete 30-minute walkthrough covering the entire software development lifecycle, technology trade-offs, ML algorithms, AST security, and exact mathematical proofs.</span>
+            <span class="ja-text">開発の流れ、技術を選んだ理由、機械学習のアルゴリズム、安全対策、計算の仕組みまで、すべてをくわしく解説した30分用の資料です。</span>
+          </p>
+
+          <ul class="deck-features">
+            <li><span>✓</span> <strong><span class="en-text">Time:</span><span class="ja-text">時間:</span></strong> <span class="en-text">~30 minutes</span><span class="ja-text">約30分</span></li>
+            <li><span>✓</span> <strong><span class="en-text">Slides:</span><span class="ja-text">枚数:</span></strong> 22 Slides</li>
+            <li><span>✓</span> <strong><span class="en-text">Contents:</span><span class="ja-text">内容:</span></strong> <span class="en-text">Lifecycle, Decision Matrix, 5 Engines, Real Metrics, Roadmap</span><span class="ja-text">技術選定の比較表、5大エンジンの詳細、実測ベンチマーク、今後の予定</span></li>
+            <li><span>✓</span> <strong><span class="en-text">Controls:</span><span class="ja-text">操作:</span></strong> <span class="en-text">EN/JA toggle, Theme switch, Grid overview (Key: O)</span><span class="ja-text">英語/日本語の切替、ダークモード、スライド一覧（Oキー）</span></li>
+          </ul>
+        </div>
+
+        <a href="bi_copilot_full.html" class="launch-btn" style="background: var(--brand-hover);">
+          <span>▶</span>
+          <span class="en-text">Launch Full Deck (22 Slides)</span>
+          <span class="ja-text">詳細版スライドを開く (全22枚)</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Presentation Controls Footer Guide -->
+    <div class="shortcuts-footer">
+      <div style="font-size: 0.8125rem; font-weight: 700;">
+        <span class="en-text">Presentation Keyboard Controls:</span>
+        <span class="ja-text">キーボードでの操作方法:</span>
+      </div>
+      <div class="shortcuts-list">
+        <span><span class="kbd-chip">←</span> / <span class="kbd-chip">→</span> <span class="en-text">Navigate</span><span class="ja-text">前 / 次へ</span></span>
+        <span><span class="kbd-chip">Space</span> <span class="en-text">Next Slide</span><span class="ja-text">次へ進む</span></span>
+        <span><span class="kbd-chip">O</span> <span class="en-text">Slide Grid</span><span class="ja-text">スライド一覧</span></span>
+        <span><span class="kbd-chip">F</span> <span class="en-text">Fullscreen</span><span class="ja-text">全画面表示</span></span>
+        <span><span class="kbd-chip">Esc</span> <span class="en-text">Close Modal</span><span class="ja-text">閉じる</span></span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Interactive Cursor Radial Spotlight
+    const spotlight = document.getElementById('graphSpotlight');
+    window.addEventListener('mousemove', (e) => {
+      spotlight.style.opacity = '1';
+      spotlight.style.setProperty('--mouse-x', `${e.clientX}px`);
+      spotlight.style.setProperty('--mouse-y', `${e.clientY}px`);
+    });
+    window.addEventListener('mouseleave', () => {
+      spotlight.style.opacity = '0';
+    });
+
+    // Theme Switcher
+    const btnTheme = document.getElementById('btnTheme');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeLabel = document.getElementById('themeLabel');
+    let isDark = false;
+    btnTheme.addEventListener('click', () => {
+      isDark = !isDark;
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        themeIcon.textContent = '☀️';
+        themeLabel.textContent = 'Paper';
+      } else {
+        document.documentElement.classList.remove('dark');
+        themeIcon.textContent = '🌙';
+        themeLabel.textContent = 'Dark';
+      }
+    });
+
+    // Language Toggle
+    const btnLang = document.getElementById('btnLang');
+    const pillEn = document.getElementById('pillEn');
+    const pillJa = document.getElementById('pillJa');
+    let currentLang = 'en';
+    btnLang.addEventListener('click', () => {
+      if (currentLang === 'en') {
+        currentLang = 'ja';
+        document.body.classList.remove('lang-en');
+        document.body.classList.add('lang-ja');
+        pillEn.classList.remove('active');
+        pillJa.classList.add('active');
+      } else {
+        currentLang = 'en';
+        document.body.classList.remove('lang-ja');
+        document.body.classList.add('lang-en');
+        pillJa.classList.remove('active');
+        pillEn.classList.add('active');
+      }
+    });
+  </script>
+</body>
+</html>

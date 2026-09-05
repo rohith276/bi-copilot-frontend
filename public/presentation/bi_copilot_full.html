@@ -1,0 +1,2545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BI-Copilot — Comprehensive Full Project Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --background: #fbfbfa;
+      --foreground: #1c1d21;
+      --surface: #ffffff;
+      --surface-hover: #f3f4f6;
+      --surface-muted: #e5e7eb;
+      --border-color: #d1d5db;
+      --border-subtle: #e5e7eb;
+      --brand-primary: #1e3a8a;
+      --brand-hover: #1e40af;
+      --brand-secondary: #4b5563;
+      --status-success: #059669;
+      --status-warning: #d97706;
+      --status-danger: #dc2626;
+      --graph-line: rgba(0, 0, 0, 0.07);
+      --graph-line-spotlight: #18181b;
+      --accent-blueprint: #2563eb;
+      --tape-bg: rgba(251, 191, 36, 0.38);
+      --tape-border: rgba(217, 119, 6, 0.5);
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    html.dark {
+      --background: #0b0f17;
+      --foreground: #f3f4f6;
+      --surface: #111827;
+      --surface-hover: #1f2937;
+      --surface-muted: #374151;
+      --border-color: #1f2937;
+      --border-subtle: #374151;
+      --brand-primary: #3b82f6;
+      --brand-hover: #2563eb;
+      --brand-secondary: #9ca3af;
+      --status-success: #10b981;
+      --status-warning: #f59e0b;
+      --status-danger: #ef4444;
+      --graph-line: rgba(255, 255, 255, 0.07);
+      --graph-line-spotlight: #38bdf8;
+      --accent-blueprint: #60a5fa;
+      --tape-bg: rgba(217, 119, 6, 0.25);
+      --tape-border: rgba(245, 158, 11, 0.4);
+      --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      user-select: none;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .graph-bg {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0;
+      background-image: 
+        linear-gradient(to right, var(--graph-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--graph-line) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .graph-spotlight {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 1;
+      background-image: 
+        linear-gradient(to right, var(--graph-line-spotlight) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--graph-line-spotlight) 1px, transparent 1px);
+      background-size: 20px 20px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      mask-image: radial-gradient(circle 90px at var(--mouse-x, -200px) var(--mouse-y, -200px), black 0%, transparent 80%);
+      -webkit-mask-image: radial-gradient(circle 90px at var(--mouse-x, -200px) var(--mouse-y, -200px), black 0%, transparent 80%);
+    }
+
+    .top-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0; height: 52px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; z-index: 50; backdrop-filter: blur(8px);
+    }
+
+    .brand-section { display: flex; align-items: center; gap: 10px; }
+
+    .logo-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700; font-size: 0.75rem;
+      background: var(--brand-primary); color: #fff;
+      padding: 3px 8px; border-radius: 4px; letter-spacing: 0.05em;
+    }
+
+    .live-link-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem; font-weight: 700;
+      color: var(--status-success);
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 2px 7px; border-radius: 3px;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+    }
+
+    .live-link-pill:hover { background: rgba(16, 185, 129, 0.2); }
+
+    .deck-title { font-size: 0.85rem; font-weight: 600; color: var(--foreground); }
+
+    .controls-section { display: flex; align-items: center; gap: 8px; }
+
+    .control-btn {
+      background: var(--surface); border: 1px solid var(--border-color);
+      color: var(--foreground); font-size: 0.8125rem; font-weight: 600;
+      padding: 5px 12px; border-radius: 4px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .control-btn:hover { background: var(--surface-hover); border-color: var(--brand-primary); }
+
+    .lang-toggle-btn {
+      background: var(--surface); border: 1px solid var(--border-color);
+      color: var(--foreground); font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem; font-weight: 700; padding: 4px 10px;
+      border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .lang-pill { padding: 2px 5px; border-radius: 3px; }
+    .lang-pill.active { background: var(--brand-primary); color: #fff; }
+
+    .progress-bar-container {
+      position: fixed; top: 52px; left: 0; right: 0; height: 3px;
+      background: var(--border-subtle); z-index: 50;
+    }
+
+    .progress-bar-fill {
+      height: 100%; background: var(--brand-primary); width: 4.5%;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .stage {
+      position: fixed; top: 55px; left: 0; right: 0; bottom: 50px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px 32px; z-index: 10;
+    }
+
+    .paper-deck-wrapper {
+      position: relative; width: 100%; max-width: 1280px; height: 100%; max-height: 740px;
+    }
+
+    .paper-tape {
+      position: absolute; height: 14px; width: 60px;
+      background-color: var(--tape-bg); border: 1px dashed var(--tape-border);
+      z-index: 25; pointer-events: none;
+    }
+    .tape-top-left { top: -6px; left: 40px; transform: rotate(-3deg); }
+    .tape-top-right { top: -6px; right: 40px; transform: rotate(3deg); }
+
+    .notebook-holes {
+      position: absolute; top: 0; bottom: 0; left: 14px; width: 14px;
+      display: flex; flex-direction: column; justify-content: space-around;
+      padding: 35px 0; z-index: 24; pointer-events: none;
+    }
+
+    .hole {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--background); border: 1px solid var(--border-color);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    .slide {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--surface); border: 1px solid var(--border-color);
+      border-radius: 6px; box-shadow: var(--card-shadow);
+      padding: 28px 44px 28px 54px;
+      display: flex; flex-direction: column; opacity: 0; visibility: hidden;
+      transform: translateY(12px) scale(0.99);
+      transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s;
+      overflow-y: auto;
+    }
+
+    .slide.active {
+      opacity: 1; visibility: visible; transform: translateY(0) scale(1); z-index: 20;
+    }
+
+    .slide-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 14px; border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 10px;
+    }
+
+    .slide-number-tag {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700;
+      color: var(--brand-primary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px;
+    }
+
+    .slide-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; color: var(--foreground); }
+
+    .slide-subtitle { font-size: 0.85rem; color: var(--brand-secondary); margin-top: 3px; line-height: 1.4; }
+
+    .slide-meta-badge {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; padding: 4px 8px;
+      border-radius: 3px; background: var(--surface-hover); border: 1px solid var(--border-color);
+      color: var(--brand-secondary); white-space: nowrap;
+    }
+
+    .slide-body {
+      flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+    .blueprint-card {
+      background: var(--surface); border: 1px solid var(--border-color);
+      border-radius: 4px; padding: 14px 16px; position: relative;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .blueprint-card:hover {
+      border-color: var(--brand-primary); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); transform: translateY(-2px);
+    }
+
+    .card-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em; color: var(--brand-secondary);
+      margin-bottom: 5px; display: flex; align-items: center; gap: 6px;
+    }
+
+    .card-title { font-size: 0.975rem; font-weight: 700; margin-bottom: 5px; color: var(--foreground); }
+
+    .card-desc { font-size: 0.8125rem; line-height: 1.55; color: var(--brand-secondary); }
+    .card-desc strong { color: var(--foreground); }
+
+    .metric-value { font-family: 'JetBrains Mono', monospace; font-size: 1.8rem; font-weight: 800; color: var(--brand-primary); margin-bottom: 3px; }
+    .metric-caption { font-size: 0.75rem; color: var(--brand-secondary); line-height: 1.3; }
+
+    .arch-flow {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface-hover); border: 1px solid var(--border-color);
+      border-radius: 6px; padding: 12px 16px; position: relative; overflow-x: auto;
+    }
+
+    .arch-node {
+      flex: 1; background: var(--surface); border: 1px solid var(--border-color);
+      border-radius: 4px; padding: 9px; text-align: center; min-width: 130px; position: relative;
+    }
+
+    .arch-node.highlight {
+      border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.15);
+    }
+
+    .arch-node-title { font-size: 0.8125rem; font-weight: 700; margin-bottom: 2px; color: var(--foreground); }
+    .arch-node-subtitle { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--brand-secondary); }
+    .arch-arrow { padding: 0 8px; color: var(--brand-secondary); font-weight: 800; font-size: 1.1rem; }
+
+    .comp-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; margin-top: 4px; }
+    .comp-table th {
+      background: var(--surface-hover); color: var(--brand-secondary); font-weight: 700;
+      text-transform: uppercase; font-size: 0.6875rem; letter-spacing: 0.05em;
+      padding: 8px 12px; border: 1px solid var(--border-color); text-align: left;
+    }
+    .comp-table td { padding: 7px 12px; border: 1px solid var(--border-color); color: var(--foreground); vertical-align: middle; }
+    .comp-table tr:hover td { background: var(--surface-hover); }
+
+    .spec-pill {
+      display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem;
+      padding: 2px 6px; border-radius: 3px; margin: 2px;
+      background: var(--surface-hover); border: 1px solid var(--border-color); color: var(--foreground);
+    }
+    .spec-pill.primary { background: rgba(30, 58, 138, 0.08); color: var(--brand-primary); border-color: rgba(30, 58, 138, 0.3); }
+    .spec-pill.success { background: rgba(16, 185, 129, 0.08); color: var(--status-success); border-color: rgba(16, 185, 129, 0.3); }
+
+    .code-box {
+      background: var(--surface-hover); border: 1px solid var(--border-color);
+      border-radius: 4px; padding: 10px 12px; font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; line-height: 1.5; color: var(--foreground); overflow-x: auto; white-space: pre-wrap;
+    }
+
+    .bottom-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 50px;
+      background: var(--surface); border-top: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; z-index: 50; backdrop-filter: blur(8px);
+    }
+
+    .counter-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; font-weight: 700; color: var(--brand-secondary); }
+    .counter-active { color: var(--foreground); font-size: 0.9375rem; }
+
+    .nav-buttons { display: flex; align-items: center; gap: 12px; }
+
+    .nav-btn {
+      background: var(--surface); border: 1px solid var(--border-color);
+      color: var(--foreground); font-weight: 600; font-size: 0.8125rem;
+      padding: 6px 16px; border-radius: 4px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease;
+    }
+    .nav-btn:hover:not(:disabled) { background: var(--brand-primary); color: #ffffff; border-color: var(--brand-primary); }
+    .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .shortcut-hints {
+      display: flex; align-items: center; gap: 10px; font-size: 0.6875rem;
+      color: var(--brand-secondary); font-family: 'JetBrains Mono', monospace;
+    }
+    .kbd-chip { background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 3px; padding: 1px 5px; font-weight: 700; color: var(--foreground); }
+
+    .overview-modal {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(6px);
+      z-index: 200; display: none; align-items: center; justify-content: center; padding: 40px;
+    }
+    .overview-modal.open { display: flex; }
+
+    .overview-content {
+      background: var(--surface); border: 1px solid var(--border-color);
+      border-radius: 8px; box-shadow: var(--card-shadow);
+      width: 100%; max-width: 1150px; max-height: 85vh; overflow-y: auto; padding: 24px;
+    }
+
+    .overview-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;
+    }
+
+    .overview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+    .thumbnail-card {
+      background: var(--surface-hover); border: 1px solid var(--border-color);
+      border-radius: 6px; padding: 12px; cursor: pointer; transition: all 0.2s ease; position: relative;
+    }
+    .thumbnail-card:hover { border-color: var(--brand-primary); transform: translateY(-2px); }
+    .thumbnail-card.active { border-color: var(--brand-primary); box-shadow: 0 0 0 2px var(--brand-primary); background: var(--surface); }
+    .thumb-num { font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; font-weight: 700; color: var(--brand-primary); margin-bottom: 3px; }
+    .thumb-title { font-size: 0.75rem; font-weight: 700; color: var(--foreground); line-height: 1.3; }
+
+    body.lang-ja .en-text { display: none !important; }
+    body.lang-en .ja-text { display: none !important; }
+
+    @keyframes slideInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .slide.active .blueprint-card, .slide.active .arch-flow, .slide.active .comp-table, .slide.active .code-box {
+      animation: slideInUp 0.35s ease backwards;
+    }
+    .slide.active .blueprint-card:nth-child(1) { animation-delay: 0.05s; }
+    .slide.active .blueprint-card:nth-child(2) { animation-delay: 0.1s; }
+    .slide.active .blueprint-card:nth-child(3) { animation-delay: 0.15s; }
+
+    /* =========================================================
+       FULLSCREEN PRESENTATION MODE (SLIDES ONLY)
+       ========================================================= */
+    body.is-fullscreen .top-bar,
+    body.is-fullscreen .progress-bar-container,
+    body.is-fullscreen .bottom-bar {
+      display: none !important;
+    }
+
+    body.is-fullscreen .stage {
+      top: 0 !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      padding: 16px 24px !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 100 !important;
+      background: var(--background);
+    }
+
+    body.is-fullscreen .paper-deck-wrapper {
+      max-width: 100% !important;
+      max-height: 100% !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    body.is-fullscreen .slide {
+      padding: 34px 54px 42px 64px !important;
+      border-radius: 8px !important;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.22) !important;
+    }
+
+    body.is-fullscreen .slide-title {
+      font-size: 1.85rem !important;
+    }
+
+    body.is-fullscreen .slide-subtitle {
+      font-size: 0.95rem !important;
+    }
+
+    body.is-fullscreen .card-title {
+      font-size: 1.05rem !important;
+    }
+
+    body.is-fullscreen .card-desc {
+      font-size: 0.85rem !important;
+      line-height: 1.6 !important;
+    }
+
+    body.is-fullscreen .metric-value {
+      font-size: 2.2rem !important;
+    }
+
+    /* Floating Fullscreen HUD (Slides Only Mode) */
+    .fullscreen-hud {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 30px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      z-index: 150;
+      backdrop-filter: blur(12px);
+      opacity: 1;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    body.is-fullscreen .fullscreen-hud {
+      display: flex !important;
+    }
+
+    .fullscreen-hud.hud-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(14px);
+    }
+
+    .hud-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--foreground);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .hud-btn:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-color);
+    }
+
+    .hud-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--brand-secondary);
+      padding: 0 8px;
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+    }
+
+    .hud-exit-btn {
+      background: var(--surface-hover);
+      border-color: var(--border-color);
+      color: var(--status-danger);
+      font-weight: 700;
+    }
+    .hud-exit-btn:hover {
+      background: var(--status-danger);
+      color: #ffffff;
+      border-color: var(--status-danger);
+    }
+  </style>
+</head>
+<body class="lang-en">
+
+  <div class="graph-bg"></div>
+  <div class="graph-spotlight" id="graphSpotlight"></div>
+
+  <!-- Top Bar -->
+  <header class="top-bar">
+    <div class="brand-section">
+      <span class="logo-badge">BI-COPILOT</span>
+      <a href="https://bicopilot.vercel.app" target="_blank" rel="noopener noreferrer" class="live-link-pill">
+        <span style="display:inline-block; width:6px; height:6px; background:var(--status-success); border-radius:50%;"></span>
+        <span>bicopilot.vercel.app</span>
+      </a>
+      <span class="deck-title">
+        <span class="en-text">Comprehensive Technical Deck (22 Slides)</span>
+        <span class="ja-text">完全技術解説資料 (全22スライド)</span>
+      </span>
+    </div>
+
+    <div class="controls-section">
+      <a href="bi_copilot_short.html" class="control-btn" style="text-decoration:none;">
+        <span>⚡</span>
+        <span class="en-text">Short Deck (11 Slides)</span>
+        <span class="ja-text">要約版へ (全11枚)</span>
+      </a>
+
+      <button class="control-btn" id="btnOverview" title="Slide Overview (Hotkey: O)">
+        <span>⊞</span>
+        <span class="en-text">Grid</span>
+        <span class="ja-text">一覧</span>
+      </button>
+
+      <button class="control-btn" id="btnTheme" title="Toggle Theme (Hotkey: T)">
+        <span id="themeIcon">🌙</span>
+        <span id="themeLabel">Dark</span>
+      </button>
+
+      <button class="lang-toggle-btn" id="btnLang" title="Toggle English / 日本語 (Hotkey: L)">
+        <span class="lang-pill active" id="pillEn">EN</span>
+        <span>/</span>
+        <span class="lang-pill" id="pillJa">日本語</span>
+      </button>
+
+      <button class="control-btn" id="btnFullscreenTop" title="Full Screen Slides Only (Hotkey: F)">
+        <span>⛶</span>
+        <span class="en-text">Full Screen</span>
+        <span class="ja-text">全画面</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar-container">
+    <div class="progress-bar-fill" id="progressBar"></div>
+  </div>
+
+  <!-- Main Stage -->
+  <main class="stage">
+    <div class="paper-deck-wrapper">
+      <div class="paper-tape tape-top-left"></div>
+      <div class="paper-tape tape-top-right"></div>
+
+      <div class="notebook-holes">
+        <div class="hole"></div>
+        <div class="hole"></div>
+        <div class="hole"></div>
+        <div class="hole"></div>
+        <div class="hole"></div>
+      </div>
+
+      <!-- SLIDE 1: COVER -->
+      <section class="slide active" data-slide="1">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 01 • Architecture Overview</span>
+              <span class="ja-text">スライド 01 • システム概要</span>
+            </div>
+            <h1 class="slide-title">
+              <span class="en-text">BI-Copilot: Autonomous NL Business Intelligence</span>
+              <span class="ja-text">BI-Copilot: 自然言語で動く自律型ビジネス分析基盤</span>
+            </h1>
+            <p class="slide-subtitle">
+              <span class="en-text">Full-stack software engineering, verified benchmarks, and mathematical rigor</span>
+              <span class="ja-text">フルスタックの技術設計、実際のテスト結果、そして正確な計算の仕組み</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Live: bicopilot.vercel.app</span>
+            <span class="ja-text">公開中: bicopilot.vercel.app</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3">
+            <div class="blueprint-card">
+              <div class="card-label"><span>💡</span> CORE PURPOSE</div>
+              <h3 class="card-title">
+                <span class="en-text">Democratizing Data</span>
+                <span class="ja-text">だれでも自由にデータ分析</span>
+              </h3>
+              <p class="card-desc">
+                <span class="en-text">Empowers non-technical managers to ask questions in plain English, receiving verified SQLite queries, statistical predictions, and dashboards in seconds without waiting on data analysts.</span>
+                <span class="ja-text">SQLを知らないビジネス担当者でも、ふつうの日本語で質問できます。アナリストに頼まなくても、数秒で安全なSQLが実行され、グラフが完成します。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label"><span>📐</span> CRAFT IDENTITY</div>
+              <h3 class="card-title">
+                <span class="en-text">Paper / Blueprint Aesthetics</span>
+                <span class="ja-text">設計図・方眼紙のデザイン</span>
+              </h3>
+              <p class="card-desc">
+                <span class="en-text">Strict 70% Professional SaaS UI / 20% Paper-Graph System / 10% Isometric Craft balance, featuring an interactive 60fps radial spotlight that follows the cursor over graph paper.</span>
+                <span class="ja-text">方眼紙やマスキングテープを取り入れた、見やすくて使いやすい設計図UIです。カーソルの周りがライトのように光る工夫も入っています。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label"><span>🛡️</span> MATHEMATICAL TRUST</div>
+              <h3 class="card-title">
+                <span class="en-text">Zero Arithmetic Hallucination</span>
+                <span class="ja-text">計算の間違いゼロ</span>
+              </h3>
+              <p class="card-desc">
+                <span class="en-text">AI interprets natural language intent, while Python and SQLite execute 100% of arithmetic, data filtering, and machine learning algorithms. No fake or hallucinated numbers.</span>
+                <span class="ja-text">AIには「言葉の理解」だけをさせ、実際の計算はPythonとSQLiteが正確に行います。そのため、AIがでたらめな数字を答える心配がありません。</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="background: var(--surface-hover);">
+            <div class="card-label"><span>🚀</span> VERIFIED PRODUCTION BENCHMARKS (9,994 ROWS BENCHMARK)</div>
+            <div class="grid-4" style="margin-top: 6px;">
+              <div>
+                <span class="spec-pill primary">Next.js 16 (React 19)</span>
+                <div style="font-size:0.75rem; color:var(--brand-secondary); margin-top:2px;">Live on Vercel</div>
+              </div>
+              <div>
+                <span class="spec-pill success">FastAPI + Python 3.12</span>
+                <div style="font-size:0.75rem; color:var(--brand-secondary); margin-top:2px;">Async ASGI Concurrency</div>
+              </div>
+              <div>
+                <span class="spec-pill">SQLite In-Memory</span>
+                <div style="font-size:0.75rem; color:var(--brand-secondary); margin-top:2px;">3.5ms query execution</div>
+              </div>
+              <div>
+                <span class="spec-pill">Scikit-Learn & Statsmodels</span>
+                <div style="font-size:0.75rem; color:var(--brand-secondary); margin-top:2px;">AutoML & Holt-Winters</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 2: MARKET CONTEXT -->
+      <section class="slide" data-slide="2">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 02 • Evolution of BI</span>
+              <span class="ja-text">スライド 02 • データ分析ツールの歴史</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">The Evolution of Business Intelligence</span>
+              <span class="ja-text">BIツールはどのように進化してきたか？</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">From rigid IT reports to dashboards, and the shift to Autonomous AI Copilots</span>
+              <span class="ja-text">決まった印刷レポートから、自分で質問できるAIアシスタントへ</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Generational Shift</span>
+            <span class="ja-text">ツールの世代交代</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3">
+            <div class="blueprint-card">
+              <div class="card-label">GEN 1.0 (2000s): STATIC REPORTS</div>
+              <h3 class="card-title">
+                <span class="en-text">IT-Dependent Reports</span>
+                <span class="ja-text">第1世代: 紙やPDFの定型レポート</span>
+              </h3>
+              <p class="card-desc">
+                <span class="en-text">Crystal Reports and SSRS. Entirely dependent on IT developers. Any metric change required weeks of engineering tickets.</span>
+                <span class="ja-text">IT部門に作ってもらう印刷用レポート。項目の変更を1つ頼むだけでも、数週間の待ち時間が必要でした。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">GEN 2.0 (2010s): VISUAL DASHBOARDS</div>
+              <h3 class="card-title">
+                <span class="en-text">Tableau & PowerBI</span>
+                <span class="ja-text">第2世代: 画面で見るダッシュボード</span>
+              </h3>
+              <p class="card-desc">
+                <span class="en-text">Improved GUI charts, but led to "Dashboard Sprawl". Dashboards only answer pre-set questions; ad-hoc queries still require SQL analysts.</span>
+                <span class="ja-text">画面は見やすくなりましたが、あらかじめ決められたグラフしか見られません。新しい質問にはSQLが必要でした。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card" style="border-color: var(--brand-primary); background: rgba(30, 58, 138, 0.04);">
+              <div class="card-label" style="color: var(--brand-primary);">GEN 3.0 (TODAY): BI-COPILOT</div>
+              <h3 class="card-title">
+                <span class="en-text">Autonomous AI Copilots</span>
+                <span class="ja-text">第3世代: 言葉で動くBI-Copilot</span>
+              </h3>
+              <p class="card-desc">
+                <span class="en-text">Plain English queries generate verified in-memory SQL, AutoML tournaments, and exact root-cause breakdowns in seconds.</span>
+                <span class="ja-text">ふだんの言葉で話しかけるだけで、安全なSQLが作られ、AI予測や原因分析が数秒で完了します。</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="blueprint-card">
+            <div class="card-label"><span>💡</span> INDUSTRY FACT</div>
+            <p class="card-desc">
+              <span class="en-text">Gartner research shows that <strong>over 70% of business decisions still rely on ad-hoc spreadsheets</strong> because modern BI tools are too rigid for exploratory questions. BI-Copilot solves this exact bottleneck.</span>
+              <span class="ja-text">米Gartner社の調査によると、現在のBIツールが使いにくいため、<strong>企業の意思決定の70%以上がいまだに手作業のエクセルに頼っています</strong>。BI-Copilotはこの大きな無駄をなくします。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 3: THE PROBLEM -->
+      <section class="slide" data-slide="3">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 03 • The Bottleneck</span>
+              <span class="ja-text">スライド 03 • 現場の困りごと</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">The 3-to-5 Day Analyst Bottleneck</span>
+              <span class="ja-text">数字をもらうまでに3〜5日かかる問題</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Operational delay between business strategy and data execution</span>
+              <span class="ja-text">現場のスピードが落ちてしまう本当の原因</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Operational Friction</span>
+            <span class="ja-text">業務のムダ</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="blueprint-card" style="border-left: 4px solid var(--status-danger);">
+              <div class="card-label" style="color: var(--status-danger);">BUSINESS MANAGERS</div>
+              <h3 class="card-title">
+                <span class="en-text">Delayed Decisions & Lost Speed</span>
+                <span class="ja-text">現場の判断が遅れてしまう</span>
+              </h3>
+              <ul style="margin-left: 18px; font-size: 0.8125rem; line-height: 1.7; color: var(--brand-secondary);">
+                <li><strong><span class="en-text">3–5 Days Queue:</span><span class="ja-text">3〜5日の待ち時間:</span></strong> <span class="en-text">Simple metrics take days because analysts are backlogged.</span><span class="ja-text">かんたんな数字を知りたいだけなのに、何日も待たされます。</span></li>
+                <li><strong><span class="en-text">Communication Mismatch:</span><span class="ja-text">伝達の食い違い:</span></strong> <span class="en-text">Analysts misunderstand business context and return the wrong slices.</span><span class="ja-text">依頼の言葉がうまく伝わらず、欲しかったデータと違うものが返ってきます。</span></li>
+                <li><strong><span class="en-text">Spreadsheet Chaos:</span><span class="ja-text">壊れたエクセル計算:</span></strong> <span class="en-text">Frustrated leads export unverified CSVs with broken formulas.</span><span class="ja-text">待ちきれずに手作業でエクセル計算をしてしまい、計算ミスの温床になります。</span></li>
+              </ul>
+            </div>
+
+            <div class="blueprint-card" style="border-left: 4px solid var(--status-warning);">
+              <div class="card-label" style="color: var(--status-warning);">DATA ANALYSTS</div>
+              <h3 class="card-title">
+                <span class="en-text">Drowning in Repetitive SQL</span>
+                <span class="ja-text">エンジニアが単純作業で疲れる</span>
+              </h3>
+              <ul style="margin-left: 18px; font-size: 0.8125rem; line-height: 1.7; color: var(--brand-secondary);">
+                <li><strong><span class="en-text">60%+ Grunt Work:</span><span class="ja-text">時間の60%が定型クエリ:</span></strong> <span class="en-text">Senior data engineers waste entire weeks tweaking simple `WHERE` clauses.</span><span class="ja-text">優秀なデータ担当者が、毎日かんたんなSQLの修正ばかりに追われています。</span></li>
+                <li><strong><span class="en-text">Zero Time for Big ML:</span><span class="ja-text">大事な開発ができない:</span></strong> <span class="en-text">Important predictive models and cost-savings projects get delayed.</span><span class="ja-text">会社にとって本当に価値のある大きなAIプロジェクトに手が回りません。</span></li>
+                <li><strong><span class="en-text">Constant Interruptions:</span><span class="ja-text">集中力が途切れる:</span></strong> <span class="en-text">Chat interruptions break deep engineering architecture focus.</span><span class="ja-text">「このデータすぐ出せる？」と頻繁に聞かれ、開発の集中が続きません。</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="background: rgba(220, 38, 38, 0.04); border-color: rgba(220, 38, 38, 0.25);">
+            <div class="card-label" style="color: var(--status-danger);">THE CORE REALITY</div>
+            <p style="font-size: 0.875rem;">
+              <span class="en-text">The issue is not computer power — it is the human translation queue between business questions and SQL query execution.</span>
+              <span class="ja-text">パソコンの性能が足りないのではなく、「ビジネスの質問」を「SQLの命令」に直す人間の作業がボトルネックになっています。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 4: WHY NAIVE LLMS FAIL -->
+      <section class="slide" data-slide="4">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 04 • The Technical Risk</span>
+              <span class="ja-text">スライド 04 • なぜChatGPT単体ではダメなのか？</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Why Naive LLM Wrappers Fail in Production</span>
+              <span class="ja-text">AI単体ではビジネスの数字を任せられない理由</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Language models are text generators, not deterministic calculators</span>
+              <span class="ja-text">AI（言語モデル）は文章を作る道具であり、電卓ではないためです</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Design Rationale</span>
+            <span class="ja-text">設計の前提</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-4">
+            <div class="blueprint-card">
+              <div class="card-label" style="color:var(--status-danger);">1. FAKE COLUMNS</div>
+              <h4 class="card-title">
+                <span class="en-text">Column Hallucination</span>
+                <span class="ja-text">存在しない列名</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">LLMs make up columns that sound logical (e.g. `product_cost`), throwing fatal SQL errors.</span>
+                <span class="ja-text">テーブルにない項目名を勝手に作ってしまい、データベースがエラーで止まります。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label" style="color:var(--status-danger);">2. MATH DRIFT</div>
+              <h4 class="card-title">
+                <span class="en-text">Arithmetic Errors</span>
+                <span class="ja-text">計算のミス</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Asking an LLM to sum 10,000 numbers in text produces probabilistic guesses instead of exact totals.</span>
+                <span class="ja-text">何千件ものデータをAI自身に足し算させると、だいたいの予想値になり、数字が狂います。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label" style="color:var(--status-warning);">3. TOKEN LIMITS</div>
+              <h4 class="card-title">
+                <span class="en-text">Context Overflow</span>
+                <span class="ja-text">容量オーバー</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Large CSVs with tens of thousands of rows cannot fit into an LLM prompt window and cost too much.</span>
+                <span class="ja-text">何万行もある大きなファイルを丸ごとAIに渡すと、文字数制限を超えてしまいます。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label" style="color:var(--status-danger);">4. SECURITY HAZARDS</div>
+              <h4 class="card-title">
+                <span class="en-text">Unsafe SQL</span>
+                <span class="ja-text">危険な命令</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Without AST barriers, confused prompts could execute `DROP` or `DELETE` statements on tables.</span>
+                <span class="ja-text">安全装置がないと、データを消去してしまうような危険なSQLを実行する恐れがあります。</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="background: rgba(30, 58, 138, 0.04); border-color: var(--brand-primary);">
+            <div class="card-label" style="color: var(--brand-primary);">OUR ARCHITECTURAL FIX</div>
+            <p style="font-size: 0.875rem;">
+              <span class="en-text"><strong>Strict Division of Labor:</strong> The LLM only translates human intent into grounded SQL. All numerical aggregations, filtering, and machine learning are performed by Python and SQLite in memory.</span>
+              <span class="ja-text"><strong>役割の完全な分担:</strong> AIには「人間が何を言っているかの理解」だけをさせます。すべての足し算、データの絞り込み、機械学習は、100%正確なプログラム（PythonとSQLite）が行います。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 5: 5-STEP PIPELINE -->
+      <section class="slide" data-slide="5">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 05 • System Workflow</span>
+              <span class="ja-text">スライド 05 • 5つの処理ステップ</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">The End-to-End Autonomous Pipeline</span>
+              <span class="ja-text">最初から最後まで自動で進む仕組み</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">From raw spreadsheet ingestion to executive insights in 5 clear steps</span>
+              <span class="ja-text">ファイルを入れるだけで、きれいに掃除して結果が出るまでの流れ</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Verified Pipeline</span>
+            <span class="ja-text">動作検証済み</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="arch-flow">
+            <div class="arch-node highlight">
+              <div class="arch-node-title">1. INGESTION</div>
+              <div class="arch-node-subtitle">Auto Sniffing</div>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node highlight">
+              <div class="arch-node-title">2. AUTO-CLEAN</div>
+              <div class="arch-node-subtitle">Median Imputation</div>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node highlight">
+              <div class="arch-node-title">3. SAFE SQL</div>
+              <div class="arch-node-subtitle">AST Guard & Memory</div>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node highlight">
+              <div class="arch-node-title">4. PREDICTIONS</div>
+              <div class="arch-node-subtitle">AutoML & Holt-Winters</div>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node highlight">
+              <div class="arch-node-title">5. SYNTHESIS</div>
+              <div class="arch-node-subtitle">Charts & LocalStorage</div>
+            </div>
+          </div>
+
+          <div class="grid-3" style="margin-top: 10px;">
+            <div class="blueprint-card">
+              <div class="card-label">STEP 1 & 2: INGEST & CLEAN</div>
+              <h4 class="card-title">
+                <span class="en-text">Automatic Normalization</span>
+                <span class="ja-text">文字化けや欠損の自動修正</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Detects file encoding (UTF-8, Latin-1, CP1252), cleans currency symbols (`$`, `¥`), and imputes missing numeric values with robust medians.</span>
+                <span class="ja-text">文字コードを自動で判別して文字化けを防ぎます。通貨記号（$や¥）を取り除き、空欄（欠損値）を安全な中央値で自動補正します。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">STEP 3: GUARDED SQL</div>
+              <h4 class="card-title">
+                <span class="en-text">3.5ms In-Memory Execution</span>
+                <span class="ja-text">3.5ミリ秒で動く安全なSQL</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Schema DDL and min/max dates are injected into the prompt. Regex blocks all destructive queries before running against an in-memory SQLite table.</span>
+                <span class="ja-text">実際のデータ構造をAIに教えてSQLを作らせます。危険な命令はブロックし、メモリ上のSQLiteでわずか3.5ミリ秒で集計します。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">STEP 4 & 5: ML & CHARTS</div>
+              <h4 class="card-title">
+                <span class="en-text">Predictions & Persistence</span>
+                <span class="ja-text">AI予測とグラフの保存</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">AutoML runs 4 models on an 80/20 holdout split. Pinned charts persist in the browser so work is never lost when switching tabs.</span>
+                <span class="ja-text">4つのAIモデルで将来予測や売上要因を分析。作ったグラフはブラウザに自動保存され、タブを切り替えても消えません。</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 6: TECH MATRIX -->
+      <section class="slide" data-slide="6">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 06 • Technical Choices</span>
+              <span class="ja-text">スライド 06 • 技術選定の一覧表</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Complete Technology Decision Matrix</span>
+              <span class="ja-text">使っている技術と、その選定理由</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Objective architectural trade-off evaluation against alternative candidates</span>
+              <span class="ja-text">ほかの有名な技術とくらべて、本当に適したものを選びました</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Stack Matrix</span>
+            <span class="ja-text">技術比較表</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <table class="comp-table">
+            <thead>
+              <tr>
+                <th><span class="en-text">Layer</span><span class="ja-text">役割</span></th>
+                <th><span class="en-text">Chosen Stack</span><span class="ja-text">選んだ技術</span></th>
+                <th><span class="en-text">Alternatives</span><span class="ja-text">比較した技術</span></th>
+                <th><span class="en-text">Why We Chose It</span><span class="ja-text">選んだ理由</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Frontend</strong></td>
+                <td><span class="spec-pill primary">Next.js 16 (React 19)</span></td>
+                <td>Streamlit, Dash</td>
+                <td><span class="en-text">Fluid UI, zero re-run latency, live at bicopilot.vercel.app</span><span class="ja-text">画面がスムーズで、Vercelですぐに公開できるため</span></td>
+              </tr>
+              <tr>
+                <td><strong>Backend</strong></td>
+                <td><span class="spec-pill success">FastAPI + Python 3.12</span></td>
+                <td>Django, Flask</td>
+                <td><span class="en-text">Asynchronous ASGI speed, Pydantic v2 type safety</span><span class="ja-text">たくさんの質問を同時に速くさばけ、型チェックが安全なため</span></td>
+              </tr>
+              <tr>
+                <td><strong>Sandbox</strong></td>
+                <td><span class="spec-pill">SQLite In-Memory (:memory:)</span></td>
+                <td>DuckDB, PostgreSQL</td>
+                <td><span class="en-text">3.5ms query time, zero persistent disk files, client privacy</span><span class="ja-text">3.5ミリ秒で動き、ディスクにデータを残さず安全なため</span></td>
+              </tr>
+              <tr>
+                <td><strong>AutoML</strong></td>
+                <td><span class="spec-pill primary">Scikit-Learn 1.4</span></td>
+                <td>PyTorch, AutoGluon</td>
+                <td><span class="en-text">Zero GPU cost, 100% explainable model coefficients</span><span class="ja-text">高いGPU費用がかからず、計算理由を上司に説明できるため</span></td>
+              </tr>
+              <tr>
+                <td><strong>Forecasting</strong></td>
+                <td><span class="spec-pill success">Statsmodels 0.14</span></td>
+                <td>Prophet, ARIMA</td>
+                <td><span class="en-text">Holt-Winters seasonal smoothing; avoids heavy C++ builds</span><span class="ja-text">季節の波を正確に捉えられ、余計なインストール不要なため</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="blueprint-card" style="margin-top: 6px;">
+            <div class="card-label">KEY TAKEAWAY</div>
+            <p class="card-desc">
+              <span class="en-text">This stack achieves <strong>instant sub-second responses, zero GPU hosting cost, and public cloud deployment on Vercel</strong>.</span>
+              <span class="ja-text">この組み合わせにより、<strong>1秒未満の高速レスポンス、GPU不要による大幅なコスト削減、Vercelでの即時公開</strong>を実現しました。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 7: FRONTEND & SPOTLIGHT -->
+      <section class="slide" data-slide="7">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 07 • Frontend Design</span>
+              <span class="ja-text">スライド 07 • 画面の設計とデザイン</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Frontend Engineering & The Blueprint System</span>
+              <span class="ja-text">フロントエンドと設計図デザインシステム</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Next.js 16, React 19, and the signature 60fps radial spotlight</span>
+              <span class="ja-text">Next.js 16、React 19、そしてカーソルを追う光彩スポットライト</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Physical Blueprint UI</span>
+            <span class="ja-text">設計図UIシステム</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3">
+            <div class="blueprint-card">
+              <div class="card-label">70% PROFESSIONAL SAAS</div>
+              <h4 class="card-title">
+                <span class="en-text">High Information Density</span>
+                <span class="ja-text">見やすい高密度な画面</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Compact data tables, responsive CSS grid layouts, crisp typography, and multi-tab state persistence (Catalog, Explore, Visual Builder, Analytics, Copilot).</span>
+                <span class="ja-text">見やすい表組み、画面サイズに合わせたグリッド配置、タブを移動しても作業が消えない保存機能を備えています。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">20% PAPER & GRAPH</div>
+              <h4 class="card-title">
+                <span class="en-text">Warm Paper & Blueprint Modes</span>
+                <span class="ja-text">紙と設計図の2つのモード</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Warm light paper mode (`#fbfbfa`) and deep blueprint dark mode (`#0b0f17`). Layered `.paper-sheet` cards with physical drop shadows.</span>
+                <span class="ja-text">目にやさしい「紙モード（白）」と、落ち着いた「設計図モード（黒）」をワンクリックで切り替えられます。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">10% CRAFT DETAILS</div>
+              <h4 class="card-title">
+                <span class="en-text">Tactile Accents</span>
+                <span class="ja-text">リアルな手触りのアクセント</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Corner masking tape strips, notebook margin hole punches, monospace technical specification badges, and clean SVG icons.</span>
+                <span class="ja-text">角のマスキングテープや、ノートのパンチ穴、等幅フォントのバッジなど、工学的な設計図の雰囲気を大切にしています。</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="background: var(--surface-hover);">
+            <div class="card-label"><span>🔦</span> SIGNATURE 60FPS CURSOR RADIAL SPOTLIGHT</div>
+            <p class="card-desc">
+              <span class="en-text">Renders a base 20px graph paper. On mouse movement, an overlay with bold graphite lines is masked by an ~80px radial gradient centered at the cursor, creating an interactive engineering spotlight without any performance drop.</span>
+              <span class="ja-text">画面全体に20pxの方眼紙が敷かれています。マウスを動かすと、カーソルの周りだけが懐中電灯のように明るく照らし出され、スムーズに追従します。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 8: BACKEND & MIDDLEWARE -->
+      <section class="slide" data-slide="8">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 08 • Server Architecture</span>
+              <span class="ja-text">スライド 08 • バックエンドとミドルウェア</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">FastAPI Backend & Middleware Architecture</span>
+              <span class="ja-text">FastAPI サーバーと安全対策の仕組み</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Asynchronous ASGI request handling, structured logging, and error interception</span>
+              <span class="ja-text">通信をすばやくさばき、エラーを未然に防ぐ安全なサーバー構成</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">FastAPI / Python 3.12</span>
+            <span class="ja-text">非同期ASGI</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="blueprint-card">
+              <div class="card-label">REQUEST PIPELINE FLOW</div>
+              <h4 class="card-title">
+                <span class="en-text">8-Step ASGI Lifecycle</span>
+                <span class="ja-text">リクエストが届いてから返すまで</span>
+              </h4>
+              <div class="code-box">
+1. Client HTTP Request (Vercel Frontend)
+   ↓
+2. CORSMiddleware (Allows secure cross-origin calls)
+   ↓
+3. Structured Logging Middleware (Logs timing in ms)
+   ↓
+4. Pydantic v2 Schema Validation (Rejects bad payloads)
+   ↓
+5. Route Handler (Dataset, NLP, Analytics, Export)
+   ↓
+6. In-Memory SQLite Sandbox / ML Tournament
+   ↓
+7. JSON Serialization & Decimal Rounding
+   ↓
+8. Client Response (&lt;80ms typical server time)</div>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">DEFENSIVE MIDDLEWARE</div>
+              <h4 class="card-title">
+                <span class="en-text">Resilience & Telemetry</span>
+                <span class="ja-text">サーバーを守る3つの安全策</span>
+              </h4>
+              <ul style="margin-left: 18px; font-size: 0.8125rem; line-height: 1.7; color: var(--brand-secondary);">
+                <li><strong><span class="en-text">Global Error Handler:</span><span class="ja-text">エラーの安全な捕捉:</span></strong> <span class="en-text">Catches unexpected Pandas errors and returns clean JSON instead of crashing.</span><span class="ja-text">予期せぬデータエラーが起きてもサーバーが落ちず、わかりやすいエラー文を返します。</span></li>
+                <li><strong><span class="en-text">Stream Buffering:</span><span class="ja-text">安全なファイル読込:</span></strong> <span class="en-text">Large CSV uploads are buffered in RAM safely without causing server memory spikes.</span><span class="ja-text">大きなファイルがアップロードされても、メモリを使いすぎないよう安全に読み込みます。</span></li>
+                <li><strong><span class="en-text">Pydantic Type Check:</span><span class="ja-text">厳格なデータ検査:</span></strong> <span class="en-text">Validates request parameters before calling any analytics engine.</span><span class="ja-text">変なデータや不正な値が送られてきた場合、計算を始める前にすぐ弾きます。</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 9: INGESTION & CLEANING -->
+      <section class="slide" data-slide="9">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 09 • Data Quality</span>
+              <span class="ja-text">スライド 09 • データの読み込みと自動おそうじ</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Data Ingestion, Profiling & Auto-Cleaning</span>
+              <span class="ja-text">汚れたエクセルデータをきれいに整える技術</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Handling encoding issues, delimiters, currency characters, and missing values</span>
+              <span class="ja-text">文字化け、カンマやタブの区切り、空欄（欠損）を自動で直します</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Autonomous Cleaning</span>
+            <span class="ja-text">自動クレンジング</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3">
+            <div class="blueprint-card">
+              <div class="card-label">1. ENCODING SNIFFING</div>
+              <h4 class="card-title">
+                <span class="en-text">Multi-Encoding Sniffing</span>
+                <span class="ja-text">文字化けの自動防止</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Automatically tries UTF-8, Latin-1, CP1252, and UTF-16. Sniffs delimiters (`,`, `;`, `\t`, `|`) from the first 50 lines to prevent parse errors.</span>
+                <span class="ja-text">日本語や英米の文字コード（UTF-8, CP1252など）を自動で見分けます。カンマやタブなどの区切り文字も先頭50行から正しく判断します。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">2. METRIC PROFILING</div>
+              <h4 class="card-title">
+                <span class="en-text">Column Classification</span>
+                <span class="ja-text">項目の種類を自動判定</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Calculates null counts, unique counts, and min/max bounds. Automatically classifies columns into `metric` (numbers), `dimension` (categories), or `temporal` (dates).</span>
+                <span class="ja-text">それぞれの項目が「売上などの数字（メトリック）」なのか、「地域などのカテゴリ（切り口）」なのか、「日付」なのかを自動で分類します。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">3. MEDIAN IMPUTATION</div>
+              <h4 class="card-title">
+                <span class="en-text">Outlier-Safe Filling</span>
+                <span class="ja-text">空欄の自動うめ合わせ</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Fills numeric gaps with column medians (immune to extreme spikes). Strips currency symbols (`$`, `¥`, `€`) and trims trailing whitespace.</span>
+                <span class="ja-text">空欄がある場合、極端な数字に影響されない「中央値」で補正します。「$」や「¥」などの通貨記号を消してきれいな数字に直します。</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="background: var(--surface-hover);">
+            <div class="card-label">HIGH-CARDINALITY GUARD</div>
+            <p class="card-desc">
+              <span class="en-text">When a column contains thousands of unique values (like customer IDs or postal codes), the engine keeps the top 10 dominant categories and groups the long tail into <code>__Other__</code>, preventing memory crashes during AI training.</span>
+              <span class="ja-text">郵便番号など種類が何千もある項目は、よく出る上位10個を残し、残りを「その他」にまとめます。こうすることでパソコンが固まるのを防ぎます。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 10: ENGINE 1 - TEXT-TO-SQL -->
+      <section class="slide" data-slide="10">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 10 • Natural Language Query</span>
+              <span class="ja-text">スライド 10 • 第1エンジン: 自然言語SQL</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Engine 1: Grounded Natural Language to SQLite</span>
+              <span class="ja-text">質問を安全なSQLクエリに変えて実行する</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Schema grounding, date boundaries, and read-only AST regex protection</span>
+              <span class="ja-text">テーブル構造をAIに教え、データを消す危険な命令を100%防ぎます</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">3.5ms Execution</span>
+            <span class="ja-text">実行時間 3.5ms</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="blueprint-card">
+              <div class="card-label">SCHEMA GROUNDING PROMPT</div>
+              <h4 class="card-title">
+                <span class="en-text">Temporal Dataset Context</span>
+                <span class="ja-text">日付と構造の事前チェック</span>
+              </h4>
+              <p class="card-desc" style="margin-bottom:6px;">
+                <span class="en-text">The prompt injects the exact columns and the min/max historical dates so AI does not assume today's date:</span>
+                <span class="ja-text">AIが今日の日付を勘違いしないよう、データの最初と最後の日付をAIに伝えます:</span>
+              </p>
+              <div class="code-box">
+Temporal Dataset Context:
+Column 'Order Date' spans from 2021-01-03 to 2024-12-30.
+CRITICAL RULE: If user asks for 'recent trends',
+DO NOT use date('now'). Filter relative to max date:
+WHERE "Order Date" >= date((SELECT MAX("Order Date") FROM dataset), '-1 year')</div>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">READ-ONLY AST REGEX DEFENSE</div>
+              <h4 class="card-title">
+                <span class="en-text">Regex Keyword Blocking</span>
+                <span class="ja-text">危険な単語のブロック</span>
+              </h4>
+              <p class="card-desc" style="margin-bottom:6px;">
+                <span class="en-text">Blocks destructive statements before they can reach the database engine:</span>
+                <span class="ja-text">データを変更・消去する命令をデータベースに届く前に遮断します:</span>
+              </p>
+              <div class="code-box">
+DISALLOWED_PATTERN = re.compile(
+  r"\b(insert|update|delete|drop|alter|create|"
+  r"attach|detach|pragma|replace|truncate|vacuum)\b",
+  re.IGNORECASE
+)
+# Query MUST start with 'SELECT' or 'WITH'
+# Semicolons are stripped to prevent SQL injection</div>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="background: var(--surface-hover);">
+            <div class="card-label">VERIFIED EXECUTION SPEED</div>
+            <p class="card-desc">
+              <span class="en-text">Once validated, the SQL executes against an in-memory SQLite table (populated via <code>df.to_sql("dataset", conn, index=False)</code>). Query-only execution takes <strong>3.53ms</strong> on 9,994 rows. Zero persistent disk writes.</span>
+              <span class="ja-text">チェックを通ったクエリは、メモリ上のSQLiteで実行されます。約1万件のデータでも<strong>わずか3.5ミリ秒</strong>で計算が終わり、ディスクには一切書き込まれません。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 11: ENGINE 2 - FORECASTING -->
+      <section class="slide" data-slide="11">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 11 • Forecasting</span>
+              <span class="ja-text">スライド 11 • 第2エンジン: 時系列予測</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Engine 2: Time-Series Forecasting Tournament</span>
+              <span class="ja-text">将来の売上を予測するトーナメント</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Holt-Winters Exponential Smoothing with auto-seasonality & prediction intervals</span>
+              <span class="ja-text">季節や曜日の波を読み取り、80%・95%の予測幅付きで将来を見通します</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">86.3% Test Confidence</span>
+            <span class="ja-text">テスト信頼度 86.3%</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="blueprint-card">
+              <div class="card-label">4 CANDIDATE MODELS</div>
+              <h4 class="card-title">
+                <span class="en-text">Model Competition Pool</span>
+                <span class="ja-text">競い合う4つの予測モデル</span>
+              </h4>
+              <ul style="margin-left: 18px; font-size: 0.8125rem; line-height: 1.7; color: var(--brand-secondary);">
+                <li><strong>Holt's Damped Linear Trend:</strong> <span class="en-text">Prevents unrealistic explosive runaway projections.</span><span class="ja-text">将来の数字が無限に上がると勘違いするのを防ぐモデル。</span></li>
+                <li><strong>Holt-Winters Seasonal:</strong> <span class="en-text">Captures 7-day, 4-week, and 12-month business cycles.</span><span class="ja-text">曜日や月ごとの季節の波（繁盛期など）を捉えるモデル。</span></li>
+                <li><strong>Polynomial Ridge:</strong> <span class="en-text">Quadratic time-trend extrapolation with L2 penalty.</span><span class="ja-text">カーブを描く長期トレンドを数式でなめらかに予測するモデル。</span></li>
+                <li><strong>Simple Exp Smoothing:</strong> <span class="en-text">Reliable flat-trend baseline for noisy datasets.</span><span class="ja-text">波が少ない落ち着いたデータ向けの堅実な基本モデル。</span></li>
+              </ul>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">VERIFIED HOLDOUT EVALUATION</div>
+              <h4 class="card-title">
+                <span class="en-text">Out-of-Sample Accuracy</span>
+                <span class="ja-text">本当のテストデータでの精度確認</span>
+              </h4>
+              <p class="card-desc" style="margin-bottom:6px;">
+                <span class="en-text">Reserves the final 15–20% of periods for out-of-sample holdout testing. Evaluated by Mean Absolute Percentage Error (MAPE):</span>
+                <span class="ja-text">最後の15〜20%を隠してテストを実施。隠したデータに対する予測誤差（MAPE）でテスト信頼度を計算します:</span>
+              </p>
+              <div class="code-box">
+Holdout Accuracy: Confidence = 86.3% (MAPE: 0.5594)
+Weekly Resampling: Auto-detected Weekly frequency
+Prediction Bounds:
+- 80% Envelope: y_pred ± (1.28 * Residual_StdDev)
+- 95% Envelope: y_pred ± (1.96 * Residual_StdDev)</div>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="background: var(--surface-hover);">
+            <div class="card-label">SMART CADENCE BREAKTHROUGH</div>
+            <p class="card-desc">
+              <span class="en-text">When daily transaction data has many zero days (e.g. weekends with no B2B sales), the algorithm automatically aggregates data into Weekly totals. This completely prevents the forecast line from collapsing into a flat zero.</span>
+              <span class="ja-text">土日など注文がない日が多い場合、自動的に「週単位」にまとめて計算します。これにより、0に引っ張られて予測線が真っ平らになる失敗を防ぎます。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 12: ENGINE 3 - AUTOML REGRESSION -->
+      <section class="slide" data-slide="12">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 12 • Machine Learning</span>
+              <span class="ja-text">スライド 12 • 第3エンジン: AutoML回帰分析</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Engine 3: High-Precision AutoML Regression</span>
+              <span class="ja-text">売上に効く要因をAIが自動で探すコンテスト</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Automatic feature scaling, 80/20 train/test split, and transparent coefficients</span>
+              <span class="ja-text">80%で学習し、20%で実力テスト。もっとも成績の良いAIモデルを選びます</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Random Forest Champion</span>
+            <span class="ja-text">最優秀: ランダムフォレスト</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-4">
+            <div class="blueprint-card">
+              <div class="card-label">MODEL 1: OLS</div>
+              <h4 class="card-title">Linear Regression</h4>
+              <p class="card-desc">
+                <span class="en-text">Standard linear baseline. Fully transparent coefficients.</span>
+                <span class="ja-text">基本の直線モデル。各項目の影響度がそのまま分かります。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">MODEL 2: RIDGE</div>
+              <h4 class="card-title">Ridge (L2 Scaled)</h4>
+              <p class="card-desc">
+                <span class="en-text">StandardScaler with L2 penalty. Handles correlated features.</span>
+                <span class="ja-text">似たような項目同士の干渉を抑える安定したモデルです。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">MODEL 3: LASSO</div>
+              <h4 class="card-title">Lasso (L1 Sparse)</h4>
+              <p class="card-desc">
+                <span class="en-text">L1 feature selection. Drives irrelevant weights to zero.</span>
+                <span class="ja-text">関係のない項目を0にして、本当に大事な項目を絞り込みます。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card" style="border-color: var(--brand-primary); background: rgba(30, 58, 138, 0.04);">
+              <div class="card-label" style="color:var(--brand-primary);">CHAMPION MODEL</div>
+              <h4 class="card-title">Random Forest</h4>
+              <p class="card-desc">
+                <span class="en-text">75 decision trees. Captures complex non-linear combinations.</span>
+                <span class="ja-text">75本の決定木。複雑な条件の重なりを一番上手に捉えました。</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-top: 6px;">
+            <div class="blueprint-card">
+              <div class="card-label">VERIFIED TEST RESULTS (80/20 HOLDOUT)</div>
+              <p class="card-desc">
+                <span class="en-text">Tested on 9,994 real rows: <strong>Test R² = 0.5218</strong> (Adjusted R² = 0.5206), Holdout <strong>MAE = $123.98</strong>, RMSE = $531.46. Trained and evaluated in under 300ms.</span>
+                <span class="ja-text">約1万件のデータで実測: <strong>未知テストデータでのR²は0.5218</strong>、平均誤差（MAE）は$123.98。学習からテストまで0.3秒で完了します。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">TOP DRIVER EXTRACTION</div>
+              <p class="card-desc">
+                <span class="en-text">The engine automatically discovered that <strong>Profit accounts for 95.2% of sales variation</strong>, while Discount represents 3.5% and Quantity represents 1.4%, giving managers actionable clarity.</span>
+                <span class="ja-text">「利益」が売上変動の95.2%を占め、「割引率」が3.5%、「数量」が1.4%影響していることを自動で解明しました。</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 13: ENGINE 4 - ANOMALY DETECTION -->
+      <section class="slide" data-slide="13">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 13 • Anomaly Detection</span>
+              <span class="ja-text">スライド 13 • 第4エンジン: 異常値・外れ値検知</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Engine 4: Statistical & Multivariate Anomaly Detection</span>
+              <span class="ja-text">おかしなデータや怪しい数字を自動で見つける</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Non-Parametric Median Absolute Deviation (MAD), Tukey IQR fences & Isolation Forests</span>
+              <span class="ja-text">中央値の差・四分位数・決定木を組み合わせ、矛盾した取引を発見します</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">134 Outliers Detected</span>
+            <span class="ja-text">134件の異常を発見</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3">
+            <div class="blueprint-card">
+              <div class="card-label">LAYER 1: ROBUST MAD</div>
+              <h4 class="card-title">
+                <span class="en-text">Median Absolute Deviation</span>
+                <span class="ja-text">中央値からのズレを見る</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Standard average-based Z-scores fail when sales are heavily skewed. MAD uses median centers, staying immune to extreme outliers.</span>
+                <span class="ja-text">平均値を使うと巨大な数字に引きずられます。中央値を使うことで、偏ったデータでも正確におかしな点を見つけます。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">LAYER 2: TUKEY IQR</div>
+              <h4 class="card-title">
+                <span class="en-text">Quartile Bounds (1.5x & 3.0x)</span>
+                <span class="ja-text">箱ひげ図の基準で分ける</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Distinguishes between moderate outliers ($1.5 \times \text{IQR}$) and extreme outliers ($3.0 \times \text{IQR}$), scoring severity from 0 to 100%.</span>
+                <span class="ja-text">「ちょっと珍しいデータ」と「明らかに異常なデータ」を区別し、0〜100%の危険度スコアを付けます。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">LAYER 3: ISOLATION FOREST</div>
+              <h4 class="card-title">
+                <span class="en-text">Multivariate Contradictions</span>
+                <span class="ja-text">複数項目の矛盾を見つける</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Uses 60 isolation trees to flag multi-column contradictions (e.g. tiny discount + massive negative profit) invisible to single-column checks.</span>
+                <span class="ja-text">「割引していないのに大赤字」など、1つの列だけでは見つからない複数項目の矛盾をAIが洗い出します。</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="background: var(--surface-hover);">
+            <div class="card-label">VERIFIED DETECTION METRICS</div>
+            <p class="card-desc">
+              <span class="en-text">On our 9,994-row benchmark dataset, the engine flagged <strong>134 extreme outliers</strong> (e.g. Row #509 at $6,354.95 with Severity 100%). Each anomaly is categorized into an archetype like <strong>Spike Outlier</strong> or <strong>Margin Inversion</strong>.</span>
+              <span class="ja-text">約1万件のデータから<strong>134件の極端な異常値</strong>を特定（例: 509行目の$6,354の取引など）。「急騰スパイク」や「赤字矛盾」などの分かりやすい理由を付けて報告します。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 14: ENGINE 5 - ROOT CAUSE ANALYSIS -->
+      <section class="slide" data-slide="14">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 14 • Root-Cause Analysis</span>
+              <span class="ja-text">スライド 14 • 第5エンジン: 原因分析</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Engine 5: Additive Dimensional Delta Decomposition</span>
+              <span class="ja-text">売上が変わった本当の理由を100%正確に解明</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">100% mathematically exact conservation: parts match total company variance</span>
+              <span class="ja-text">各セグメントの内訳の合計が、会社全体の増減額とピッタリ一致します</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">100% Exact Match</span>
+            <span class="ja-text">一致率 100.0%</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="blueprint-card">
+              <div class="card-label">LAW OF CONSERVATION</div>
+              <h4 class="card-title">
+                <span class="en-text">Zero Residual Leakage</span>
+                <span class="ja-text">ズレのない完全な足し算</span>
+              </h4>
+              <p class="card-desc" style="margin-bottom:6px;">
+                <span class="en-text">In financial audits, executive trust collapses if dimensional breakdowns do not equal the total net change:</span>
+                <span class="ja-text">内訳を足した数字が全体の増減と違うと信用されません。当システムは完全一致を保証します:</span>
+              </p>
+              <div class="code-box">
+Recent Total: $277,075.60 vs Prior: $191,458.00
+Net Change:   +$85,617.60 (+44.72%)
+Conservation: Sum of Customer ID deltas = $85,617.67
+Residual Leakage: 0.00% (Exact match)</div>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">VOLUME VS. RATE (PRICE) SPLIT</div>
+              <h4 class="card-title">
+                <span class="en-text">2-Factor Econometric Decomposition</span>
+                <span class="ja-text">「注文数」と「単価」の2つに分解</span>
+              </h4>
+              <p class="card-desc" style="margin-bottom:6px;">
+                <span class="en-text">Separates total revenue growth into transaction quantity shifts versus ticket price changes:</span>
+                <span class="ja-text">売上が増えた理由を「注文数が増えたから」か「単価が上がったから」かに分けます:</span>
+              </p>
+              <div class="code-box">
+Total Net Change: +$85,617.60
+= Volume Effect: +$68,193.47 (+317 more orders)
++ Ticket Effect: +$17,424.14 (+$14.44 higher avg ticket)
+Sum matches delta: True</div>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="background: var(--surface-hover);">
+            <div class="card-label">PRACTICAL BUSINESS VALUE</div>
+            <p class="card-desc">
+              <span class="en-text">Instead of merely stating <em>"Sales increased by $85,617"</em>, BI-Copilot explains the exact business story: <strong>"79.6% of the growth came from higher order volume (+317 orders), while higher ticket prices contributed $17,424. The largest single driver was customer TA-21385 (+$13,716)."</strong></span>
+              <span class="ja-text">単に「売上が8万ドル増えました」と言うのではなく、<strong>「増えた分の約80%は注文数が増えたため（+317件）で、単価アップは1.7万ドルでした。一番貢献した顧客はTA-21385（+1.3万ドル）です」</strong>と具体的に教えます。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 15: VISUAL BUILDER -->
+      <section class="slide" data-slide="15">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 15 • Visualization</span>
+              <span class="ja-text">スライド 15 • グラフ作成と保存</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Dynamic Visualization Builder & Persistence</span>
+              <span class="ja-text">自由なグラフ作成と、作業が消えない画面保存</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Multi-chart rendering, aggregation math, and zero-loss browser storage</span>
+              <span class="ja-text">好きなグラフを選んですぐ作成。タブを移動しても設定がそのまま残ります</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Interactive Charts</span>
+            <span class="ja-text">自由な可視化</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3">
+            <div class="blueprint-card">
+              <div class="card-label">7 CHART TYPES</div>
+              <h4 class="card-title">
+                <span class="en-text">Visual Variety</span>
+                <span class="ja-text">7種類のグラフに対応</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Supports Bar charts, Smooth Line series, Area plots, Pie/Donut distributions, Scatter plots, Heatmaps, and High-Density Ledger Tables.</span>
+                <span class="ja-text">棒グラフ、折れ線グラフ、面グラフ、円/ドーナツグラフ、散布図、ヒートマップ、一覧表に対応しています。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">ON-THE-FLY MATH</div>
+              <h4 class="card-title">
+                <span class="en-text">Dynamic Aggregations</span>
+                <span class="ja-text">その場ですぐ計算切り替え</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Switch between `SUM`, `AVG`, `COUNT`, `MIN`, and `MAX` instantly. Group by any dimension with zero page reloads.</span>
+                <span class="ja-text">「合計」「平均」「件数」「最大」「最小」をボタンひとつで切り替え可能。再読み込みなしですぐ画面が変わります。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">PIN-TO-DASHBOARD</div>
+              <h4 class="card-title">
+                <span class="en-text">Persistent Memory</span>
+                <span class="ja-text">ダッシュボードへピン留め</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Pin any chart or AI query result directly to the Executive Dashboard. Automatically synced with browser `localStorage`.</span>
+                <span class="ja-text">作ったグラフを「ピン留め」して自分専用のダッシュボードに保存。ブラウザを閉じても次回開いたときに残っています。</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="background: var(--surface-hover);">
+            <div class="card-label">FIXED PRODUCTION BUG: STATE PERSISTENCE</div>
+            <p class="card-desc">
+              <span class="en-text">In early builds, switching tabs from Visual Builder to Dashboard erased configured axes. We resolved this by lifting state into a dedicated React context synchronized with localStorage, guaranteeing zero loss of work.</span>
+              <span class="ja-text">以前はタブを移動すると選んでいた項目がリセットされていました。現在は全体で共有する保存領域（localStorage）と自動同期させ、別のタブを見ても作業が消えないように改良しました。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 16: CHALLENGES SOLVED -->
+      <section class="slide" data-slide="16">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 16 • Technical Triumphs</span>
+              <span class="ja-text">スライド 16 • 解決した4つの技術的課題</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Key Engineering Challenges & Battle-Tested Solutions</span>
+              <span class="ja-text">開発で苦労した点と、どうやって乗り越えたか</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Production solutions to difficult edge-cases across full-stack layers</span>
+              <span class="ja-text">実際のデータで起きた難しい問題を、プログラムの工夫で解決しました</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Production Hardened</span>
+            <span class="ja-text">現場の工夫</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="blueprint-card">
+              <div class="card-label">CHALLENGE 1: MIXED DATE FORMATS</div>
+              <h4 class="card-title">
+                <span class="en-text">International Date Parsing</span>
+                <span class="ja-text">月と日が逆になる日付の混在</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text"><strong>Issue:</strong> Datasets mix `DD/MM/YYYY` and `MM/DD/YYYY`, causing Pandas to flip dates silently.<br><strong>Solution:</strong> Built a heuristic sniffer that inspects day values (>12) on sample rows before locking the date format.</span>
+                <span class="ja-text"><strong>問題:</strong> 「日/月」と「月/日」が混ざっており、コンピューターが日付を逆にしてしまう。<br><strong>解決策:</strong> 13以上の数字があるかを事前に調べ、正しい日付の並び順を確実に判定する仕組みを作りました。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">CHALLENGE 2: ZERO-FILL IN TIME SERIES</div>
+              <h4 class="card-title">
+                <span class="en-text">Cadence Escalation</span>
+                <span class="ja-text">ゼロ埋めで予測線が平らになる問題</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text"><strong>Issue:</strong> Resampling sparse daily orders introduced synthetic zeros, flattening forecast curves.<br><strong>Solution:</strong> When empty days exceed 40%, the pipeline automatically rolls up data to Weekly or Monthly cadence.</span>
+                <span class="ja-text"><strong>問題:</strong> 取引のない日をゼロで埋めると、AI予測がゼロに引っ張られて水平に潰れてしまう。<br><strong>解決策:</strong> 取引のない日が多い場合は自動で「週単位」にまとめて計算し、きれいな予測が出るようにしました。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">CHALLENGE 3: CATEGORICAL EXPLOSION</div>
+              <h4 class="card-title">
+                <span class="en-text">High-Cardinality Guard</span>
+                <span class="ja-text">項目が多すぎてメモリが足りなくなる問題</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text"><strong>Issue:</strong> Columns with thousands of customer IDs created 4,000+ dummy columns in regression.<br><strong>Solution:</strong> Only top 10 categories are one-hot encoded; long-tail items are collapsed into `__Other__`.</span>
+                <span class="ja-text"><strong>問題:</strong> 顧客IDなど何千種類もある項目をそのまま学習させると、データが多すぎて固まる。<br><strong>解決策:</strong> よく出る上位10個だけを残し、残りは「その他」にまとめて軽量化しました。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">CHALLENGE 4: SQLITE LACKS STDDEV</div>
+              <h4 class="card-title">
+                <span class="en-text">Algebraic Variance Formula</span>
+                <span class="ja-text">SQLiteに標準偏差の関数がない問題</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text"><strong>Issue:</strong> SQLite lacks a built-in `STDDEV()` function for Z-score outlier filtering.<br><strong>Solution:</strong> Injected the mathematical sample variance formula directly into the prompt: `(SUM(x*x) - SUM(x)*SUM(x)/COUNT(x)) / (COUNT(x)-1)`.</span>
+                <span class="ja-text"><strong>問題:</strong> SQLiteには標準偏差（バラつき）を計算する命令がなく、エラーになる。<br><strong>解決策:</strong> 数学の公式を展開してSQLの中に組み込むことで、SQLiteでも正確にバラつきを計算できるようにしました。</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 17: SECURITY & RELIABILITY -->
+      <section class="slide" data-slide="17">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 17 • Security & Reliability</span>
+              <span class="ja-text">スライド 17 • セキュリティと安心設計</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Security, Reliability & Enterprise Governance</span>
+              <span class="ja-text">安心して会社で使えるセキュリティと安定性</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Read-only enforcement, zero persistent storage risks, and offline heuristics</span>
+              <span class="ja-text">読み取り専用の徹底、データが残らない安全設計、オフライン対応</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Enterprise Safe</span>
+            <span class="ja-text">安心のセキュリティ</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3">
+            <div class="blueprint-card">
+              <div class="card-label">1. READ-ONLY ENFORCEMENT</div>
+              <h4 class="card-title">
+                <span class="en-text">Non-Destructive Guaranteed</span>
+                <span class="ja-text">データを壊さない絶対保証</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">All queries run against disposable in-memory tables. Destructive statements (DROP, DELETE, UPDATE) are blocked by regex before execution.</span>
+                <span class="ja-text">データを見るだけの「読み取り専用」で動きます。消去や変更の命令は実行前にブロックされるので安全です。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">2. ZERO PERSISTENT EXPOSURE</div>
+              <h4 class="card-title">
+                <span class="en-text">RAM-Only Sandboxing</span>
+                <span class="ja-text">データがディスクに残らない</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Uploaded spreadsheets are not permanently stored on disk or shared databases. Data exists only in RAM during the active session.</span>
+                <span class="ja-text">アップロードしたファイルはハードディスクに保存されません。メモリの中だけで一時的に処理され、情報漏洩を防ぎます。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">3. OFFLINE FALLBACK</div>
+              <h4 class="card-title">
+                <span class="en-text">Graceful Offline Mode</span>
+                <span class="ja-text">AIが止まっても動き続ける</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">If OpenAI APIs experience outages or rate-limits, core analytics (AutoML, Holt-Winters, Root-Cause, Charts) continue operating via local heuristics.</span>
+                <span class="ja-text">OpenAIの通信が途切れても、予測や要因分析、グラフ作成などの基本機能は自分のプログラムで動き続けます。</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="background: var(--surface-hover);">
+            <div class="card-label">100% AUDITABLE TRANSPARENCY</div>
+            <p class="card-desc">
+              <span class="en-text">Every AI-generated answer displays its underlying SQL query and mathematical formula. Analysts and managers can inspect, copy, and verify the query in external tools at any time.</span>
+              <span class="ja-text">AIが出したすべての数字について、使ったSQLや計算式が画面に表示されます。社内の監査や上司への報告時にも、計算の根拠をはっきりと示すことができます。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 18: VERIFIED BENCHMARKS -->
+      <section class="slide" data-slide="18">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 18 • Verified Telemetry</span>
+              <span class="ja-text">スライド 18 • 実測ベンチマーク結果</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Empirical System Benchmarks & Telemetry</span>
+              <span class="ja-text">実際のデータで計測した本当の処理スピード</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Measured on real transaction datasets (9,994 records)</span>
+              <span class="ja-text">約1万件の実際のデータを使って測った正確な数字です</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Verified Lab Numbers</span>
+            <span class="ja-text">実機計測データ</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-4">
+            <div class="blueprint-card" style="text-align: center;">
+              <div class="card-label">PURE SQL TIME</div>
+              <div class="metric-value">3.53ms</div>
+              <div class="metric-caption">
+                <span class="en-text">Query execution on 9,994 rows</span>
+                <span class="ja-text">9,994件のクエリ実行時間</span>
+              </div>
+            </div>
+
+            <div class="blueprint-card" style="text-align: center;">
+              <div class="card-label">AUTOML 4-MODEL TIME</div>
+              <div class="metric-value">&lt; 300ms</div>
+              <div class="metric-caption">
+                <span class="en-text">Training Linear, Ridge, Lasso & RF</span>
+                <span class="ja-text">4モデルの学習とテスト時間</span>
+              </div>
+            </div>
+
+            <div class="blueprint-card" style="text-align: center;">
+              <div class="card-label">FORECAST CONFIDENCE</div>
+              <div class="metric-value">86.3%</div>
+              <div class="metric-caption">
+                <span class="en-text">Out-of-sample holdout accuracy</span>
+                <span class="ja-text">未知テストでの予測信頼度</span>
+              </div>
+            </div>
+
+            <div class="blueprint-card" style="text-align: center;">
+              <div class="card-label">DELTA MATCH</div>
+              <div class="metric-value">100.0%</div>
+              <div class="metric-caption">
+                <span class="en-text">Exact zero-leakage conservation</span>
+                <span class="ja-text">要因内訳の完全一致率</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="margin-top: 6px;">
+            <div class="card-label">SCALABILITY & COST PROFILE</div>
+            <div class="grid-3" style="margin-top: 4px;">
+              <div>
+                <strong style="color:var(--foreground); font-size:0.85rem;">
+                  <span class="en-text">Sub-Second User Loop:</span>
+                  <span class="ja-text">待たずにすぐ動く:</span>
+                </strong>
+                <p style="font-size:0.75rem; color:var(--brand-secondary); margin-top:2px;">
+                  <span class="en-text">Total round-trip from natural language input to rendered chart is ~1.2s total.</span>
+                  <span class="ja-text">質問を入力してからグラフが出るまで、わずか約1.2秒で完了します。</span>
+                </p>
+              </div>
+              <div>
+                <strong style="color:var(--foreground); font-size:0.85rem;">
+                  <span class="en-text">Zero GPU Hardware Cost:</span>
+                  <span class="ja-text">高価なサーバー費用ゼロ:</span>
+                </strong>
+                <p style="font-size:0.75rem; color:var(--brand-secondary); margin-top:2px;">
+                  <span class="en-text">Runs on standard commodity CPUs without requiring expensive GPU servers.</span>
+                  <span class="ja-text">ふつうのCPUで軽快に動くため、高価なAI用GPUのレンタル費用が一切かかりません。</span>
+                </p>
+              </div>
+              <div>
+                <strong style="color:var(--foreground); font-size:0.85rem;">
+                  <span class="en-text">Light Browser Memory:</span>
+                  <span class="ja-text">パソコンが重くならない:</span>
+                </strong>
+                <p style="font-size:0.75rem; color:var(--brand-secondary); margin-top:2px;">
+                  <span class="en-text">Paginated ledger tables keep browser RAM consumption under 85MB.</span>
+                  <span class="ja-text">表示を工夫しているため、大きなデータを開いてもブラウザが重くなりません。</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 19: USER JOURNEY -->
+      <section class="slide" data-slide="19">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 19 • User Journey</span>
+              <span class="ja-text">スライド 19 • 実際の使い方の流れ</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">The End-to-End User Experience Journey</span>
+              <span class="ja-text">5つのステップで体験するユーザーの流れ</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">How a business manager goes from raw file to board-ready report</span>
+              <span class="ja-text">ビジネス担当者がファイルを置いてからレポートを作るまで</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">User Workflow</span>
+            <span class="ja-text">利用シナリオ</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3">
+            <div class="blueprint-card">
+              <div class="card-label">STEP 1: UPLOAD</div>
+              <h4 class="card-title">
+                <span class="en-text">Drop File on Page</span>
+                <span class="ja-text">ファイルをドラッグ＆ドロップ</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">User uploads a sales CSV. The system auto-profiles columns, fixes currency strings, and shows the dataset catalog.</span>
+                <span class="ja-text">売上CSVをドラッグ＆ドロップ。文字化けを直して項目の種類を自動判定し、一覧を表示します。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">STEP 2: ASK QUESTIONS</div>
+              <h4 class="card-title">
+                <span class="en-text">Conversational Query</span>
+                <span class="ja-text">ふつうの言葉で質問</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">User types: <em>"What were our top 5 most profitable product categories last year?"</em> Copilot generates verified SQL and returns results in 3.5ms.</span>
+                <span class="ja-text">「昨年の利益トップ5のカテゴリは？」と入力。安全なSQLが作られ、3.5ミリ秒で答えが出ます。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">STEP 3: PREDICT & DETECT</div>
+              <h4 class="card-title">
+                <span class="en-text">Forecast & Anomalies</span>
+                <span class="ja-text">売上予測と外れ値チェック</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">With one click, user forecasts next month's sales with confidence intervals and highlights delivery delay outliers.</span>
+                <span class="ja-text">ボタンひとつで来月の売上を予測し、配送遅延などの怪しいデータをハイライトします。</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-top: 6px;">
+            <div class="blueprint-card">
+              <div class="card-label">STEP 4: CUSTOM CHARTS</div>
+              <h4 class="card-title">
+                <span class="en-text">Compose & Pin</span>
+                <span class="ja-text">グラフを作って保存</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Build an Area chart of Profit over time grouped by Region, and pin it directly to the Executive Dashboard.</span>
+                <span class="ja-text">地域別の利益の推移を面グラフで作り、ダッシュボードにピン留めしていつでも見られるようにします。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">STEP 5: EXPORT DELIVERABLE</div>
+              <h4 class="card-title">
+                <span class="en-text">Download Report</span>
+                <span class="ja-text">会議用レポートを出力</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Export charts as high-resolution PNG or clean CSV files, ready for executive board presentation.</span>
+                <span class="ja-text">できたグラフを高画質な画像（PNG）やCSVで書き出し、そのまま役員会議の資料に使えます。</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 20: FUTURE ROADMAP -->
+      <section class="slide" data-slide="20">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 20 • Future Vision</span>
+              <span class="ja-text">スライド 20 • 今後の機能拡張プラン</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Future Roadmap & Enterprise Expansion</span>
+              <span class="ja-text">これから予定している新機能と将来の展望</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Multi-table relational graphs, cloud warehouse connectors, and proactive alerts</span>
+              <span class="ja-text">複数テーブルの自動結合、クラウドDWH連携、Slackへの自動通知</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Product Roadmap</span>
+            <span class="ja-text">ロードマップ</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3">
+            <div class="blueprint-card">
+              <div class="card-label">PHASE 1: NEXT QUARTER</div>
+              <h4 class="card-title">
+                <span class="en-text">Multi-Table Auto-JOIN</span>
+                <span class="ja-text">複数テーブルの自動連結</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Auto-discovers foreign keys between multiple CSVs (Orders, Customers, Products), enabling multi-table SQL queries from language.</span>
+                <span class="ja-text">「注文表」と「顧客表」などの関係をAIが自動で結びつけ、複数の表にまたがる質問にも一発で答えます。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">PHASE 2: CLOUD DATA WAREHOUSE</div>
+              <h4 class="card-title">
+                <span class="en-text">Snowflake & BigQuery</span>
+                <span class="ja-text">クラウドDWHとの直接連携</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Direct read-only connectors to Snowflake, BigQuery, and PostgreSQL, pushing queries down to the cloud database.</span>
+                <span class="ja-text">SnowflakeやGoogle BigQueryと直接接続し、何億件もの巨大な企業ビッグデータをそのまま分析できるようにします。</span>
+              </p>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">PHASE 3: PROACTIVE AGENTS</div>
+              <h4 class="card-title">
+                <span class="en-text">Slack & Teams Diagnostic Alerts</span>
+                <span class="ja-text">Slackへの自動お知らせ</span>
+              </h4>
+              <p class="card-desc">
+                <span class="en-text">Background workers scan datasets nightly, sending proactive Slack messages when revenue or inventory deviates from forecasts.</span>
+                <span class="ja-text">夜間に自動でデータをチェックし、売上の急減や在庫切れの予兆があれば翌朝Slackで教えてくれます。</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="background: var(--surface-hover);">
+            <div class="card-label">METRIC LAYER INTEGRATION</div>
+            <p class="card-desc">
+              <span class="en-text">Connecting to semantic metric definitions (like dbt MetricFlow), ensuring that terms like "Churn Rate" or "Gross Margin" have exactly the same formula across every business unit.</span>
+              <span class="ja-text">全社で共通の「粗利」や「解約率」の計算式を統一し、部署によって数字が食い違う問題を防ぎます。</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 21: SUMMARY & BUSINESS VALUE -->
+      <section class="slide" data-slide="21">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 21 • Strategic Summary</span>
+              <span class="ja-text">スライド 21 • プロジェクトの総括</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Project Summary & Measurable ROI</span>
+              <span class="ja-text">本プロジェクトの成果とビジネスへの貢献</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Key technical milestones achieved and real enterprise value created</span>
+              <span class="ja-text">技術的な到達点と、現場のビジネスにもたらす価値のまとめ</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Strategic Summary</span>
+            <span class="ja-text">まとめ</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="blueprint-card">
+              <div class="card-label">CORE TECHNICAL MILESTONES</div>
+              <h3 class="card-title">
+                <span class="en-text">What We Built</span>
+                <span class="ja-text">達成した4つの技術的成果</span>
+              </h3>
+              <ul style="margin-left: 18px; font-size: 0.8125rem; line-height: 1.8; color: var(--brand-secondary);">
+                <li><strong><span class="en-text">Zero Arithmetic Hallucinations:</span><span class="ja-text">計算のウソを完全排除:</span></strong> <span class="en-text">Clean boundary between language translation and Python/SQLite math.</span><span class="ja-text">言葉の翻訳と計算処理を分けることで、正確な数字を保証。</span></li>
+                <li><strong><span class="en-text">5 Specialized Analytics Engines:</span><span class="ja-text">5つの専門分析機能:</span></strong> <span class="en-text">SQL, AutoML tournament, Holt-Winters forecast, anomaly detection, root-cause.</span><span class="ja-text">SQL・予測・AI回帰・異常検知・要因分解を1つのアプリに統合。</span></li>
+                <li><strong><span class="en-text">3.5ms In-Memory Execution:</span><span class="ja-text">3.5ミリ秒の超高速動作:</span></strong> <span class="en-text">Sub-millisecond query speed on 9,994 rows with zero disk file leakage.</span><span class="ja-text">メモリ内処理により、約1万件のデータも一瞬で集計。</span></li>
+                <li><strong><span class="en-text">Public Production Deployment:</span><span class="ja-text">Web上に公開済み:</span></strong> <span class="en-text">Live online at bicopilot.vercel.app with responsive paper/blueprint UX.</span><span class="ja-text">bicopilot.vercel.appで公開中。ブラウザですぐ使えます。</span></li>
+              </ul>
+            </div>
+
+            <div class="blueprint-card">
+              <div class="card-label">MEASURABLE BUSINESS RETURN</div>
+              <h3 class="card-title">
+                <span class="en-text">Enterprise Value</span>
+                <span class="ja-text">会社にもたらす3つの大きなメリット</span>
+              </h3>
+              <ul style="margin-left: 18px; font-size: 0.8125rem; line-height: 1.8; color: var(--brand-secondary);">
+                <li><strong><span class="en-text">From Days to Seconds:</span><span class="ja-text">待ち時間を数日から15秒へ:</span></strong> <span class="en-text">Reduces insight cycle from 3–5 days to under 15 seconds.</span><span class="ja-text">データをもらうまでの時間が劇的に短縮され、会議中の判断が早くなります。</span></li>
+                <li><strong><span class="en-text">60%+ Analyst Hours Saved:</span><span class="ja-text">アナリストの時間を60%節約:</span></strong> <span class="en-text">Frees technical data scientists from repetitive ad-hoc requests.</span><span class="ja-text">「この数字出して」という依頼が減り、エンジニアが大事な仕事に集中できます。</span></li>
+                <li><strong><span class="en-text">Zero GPU Hardware Cost:</span><span class="ja-text">サーバー費用を大幅削減:</span></strong> <span class="en-text">Runs on standard commodity CPUs without expensive GPU bills.</span><span class="ja-text">高価なAIサーバーを使わないため、毎月の運用コストを抑えられます。</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 22: CONCLUSION & LIVE DEMO -->
+      <section class="slide" data-slide="22">
+        <div class="slide-header">
+          <div>
+            <div class="slide-number-tag">
+              <span class="en-text">Slide 22 • Conclusion & Q&A</span>
+              <span class="ja-text">スライド 22 • 結びと実演・質疑応答</span>
+            </div>
+            <h2 class="slide-title">
+              <span class="en-text">Conclusion & Live Demonstration</span>
+              <span class="ja-text">まとめと実際のデモ実演・質疑応答</span>
+            </h2>
+            <p class="slide-subtitle">
+              <span class="en-text">Ready for questions, code inspection, and interactive live demonstration</span>
+              <span class="ja-text">技術的な質疑応答、コードの確認、実際のWeb画面でのデモ実演を始めます</span>
+            </p>
+          </div>
+          <div class="slide-meta-badge">
+            <span class="en-text">Ready for Live Demo</span>
+            <span class="ja-text">デモ準備完了</span>
+          </div>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="blueprint-card">
+              <div class="card-label">DISCUSSION TOPICS</div>
+              <h3 class="card-title">
+                <span class="en-text">Deep Dive Focus Areas</span>
+                <span class="ja-text">特にご注目いただきたいポイント</span>
+              </h3>
+              <ul style="margin-left: 18px; font-size: 0.8125rem; line-height: 1.8; color: var(--brand-secondary);">
+                <li><strong><span class="en-text">AutoML Holdout Tournament:</span><span class="ja-text">AIモデルの自動選定:</span></strong> <span class="en-text">80/20 holdout split with verified MAE, RMSE, and feature importance.</span><span class="ja-text">80/20の分割テストで一番良いモデルを選び、要因を解明する仕組み。</span></li>
+                <li><strong><span class="en-text">Holt-Winters Cadence Escalation:</span><span class="ja-text">時系列予測のリサンプリング:</span></strong> <span class="en-text">Zero-sparsity detection and 80%/95% confidence intervals.</span><span class="ja-text">注文のない日があっても予測線が潰れない、自動集約の工夫。</span></li>
+                <li><strong><span class="en-text">Exact Delta Conservation:</span><span class="ja-text">要因分析の完全一致:</span></strong> <span class="en-text">Volume vs. Rate breakdown with 100% mathematical match to total delta.</span><span class="ja-text">「注文数」と「単価」に分け、内訳の合計が全体と100%ピッタリ合う計算。</span></li>
+              </ul>
+            </div>
+
+            <div class="blueprint-card" style="display:flex; flex-direction:column; justify-content:center; text-align:center; background:var(--surface-hover);">
+              <div class="card-label" style="justify-content:center;">LIVE PRODUCTION SYSTEM</div>
+              <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--foreground); margin: 10px 0;">
+                <span class="en-text">Thank You!</span>
+                <span class="ja-text">ご清聴ありがとうございました</span>
+              </h2>
+              <p style="font-size: 0.85rem; color: var(--brand-secondary); line-height: 1.6; max-width: 440px; margin: 0 auto;">
+                <span class="en-text">The system is live online. Let's try typing questions together or inspect the codebase:</span>
+                <span class="ja-text">Webサイトで実際に動いています。ぜひ実際の質問やグラフ作成をお試しください:</span>
+              </p>
+              <div style="margin-top: 14px;">
+                <a href="https://bicopilot.vercel.app" target="_blank" rel="noopener noreferrer" class="spec-pill success" style="font-size:0.8125rem; padding:6px 14px; text-decoration:none; display:inline-block;">
+                  <span>🌐 Live on Vercel: bicopilot.vercel.app ↗</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Floating Fullscreen HUD (Slides Only Mode) -->
+  <div class="fullscreen-hud" id="fullscreenHud">
+    <button class="hud-btn" id="hudPrev" title="Previous Slide (← / Space)">
+      <span>←</span>
+      <span class="en-text">Prev</span>
+      <span class="ja-text">前へ</span>
+    </button>
+    <div class="hud-pill">
+      <span id="hudSlideNum">01</span> / <span id="hudSlideTotal">22</span>
+    </div>
+    <button class="hud-btn" id="hudNext" title="Next Slide (→)">
+      <span class="en-text">Next</span>
+      <span class="ja-text">次へ</span>
+      <span>→</span>
+    </button>
+    <div style="width:1px; height:18px; background:var(--border-color); margin:0 4px;"></div>
+    <button class="hud-btn" id="hudLang" title="Toggle Language (Hotkey: L)">
+      <span class="en-text">日本語</span>
+      <span class="ja-text">EN</span>
+    </button>
+    <button class="hud-btn" id="hudTheme" title="Toggle Theme (Hotkey: T)">
+      <span id="hudThemeIcon">🌙</span>
+    </button>
+    <button class="hud-btn" id="hudOverview" title="Slide Grid (Hotkey: O)">
+      <span>⊞</span>
+      <span class="en-text">Grid</span>
+      <span class="ja-text">一覧</span>
+    </button>
+    <button class="hud-btn hud-exit-btn" id="hudExit" title="Exit Fullscreen (Esc)">
+      <span>⤓</span>
+      <span class="en-text">Exit (Esc)</span>
+      <span class="ja-text">通常画面 (Esc)</span>
+    </button>
+  </div>
+
+  <!-- Bottom Bar -->
+  <footer class="bottom-bar">
+    <div class="counter-tag">
+      <span class="counter-active" id="slideNum">01</span> / <span id="slideTotal">22</span>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="nav-btn" id="btnPrev" disabled>
+        <span>←</span>
+        <span class="en-text">Previous</span>
+        <span class="ja-text">前へ</span>
+      </button>
+      <button class="nav-btn" id="btnNext">
+        <span class="en-text">Next</span>
+        <span class="ja-text">次へ</span>
+        <span>→</span>
+      </button>
+    </div>
+
+    <div class="shortcut-hints">
+      <span><span class="kbd-chip">←</span> / <span class="kbd-chip">→</span> or <span class="kbd-chip">Space</span> Navigate</span>
+      <span>•</span>
+      <span><span class="kbd-chip">O</span> Overview</span>
+      <span>•</span>
+      <button class="control-btn" id="btnFullscreenBottom" style="padding: 2px 8px; font-size: 0.6875rem; font-weight: 700; cursor: pointer;" title="Full Screen Slides (Hotkey: F)">
+        <span>⛶</span>
+        <span class="en-text">Full Screen (F)</span>
+        <span class="ja-text">全画面表示 (F)</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Slide Sorter Modal -->
+  <div class="overview-modal" id="overviewModal">
+    <div class="overview-content">
+      <div class="overview-header">
+        <div>
+          <h3 style="font-size: 1.1rem; font-weight: 700;">
+            <span class="en-text">Presentation Slide Sorter (22 Slides)</span>
+            <span class="ja-text">スライド一覧 (全22枚・クリックして移動)</span>
+          </h3>
+          <p style="font-size: 0.75rem; color: var(--brand-secondary);">
+            <span class="en-text">Click any slide to jump directly (Press Esc to close)</span>
+            <span class="ja-text">見たいスライドをクリックしてください（Escキーで閉じます）</span>
+          </p>
+        </div>
+        <button class="control-btn" id="btnCloseOverview">✕ Close</button>
+      </div>
+
+      <div class="overview-grid" id="overviewGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    let currentSlide = 1;
+
+    const slideNumEl = document.getElementById('slideNum');
+    const slideTotalEl = document.getElementById('slideTotal');
+    const progressBar = document.getElementById('progressBar');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+    const btnLang = document.getElementById('btnLang');
+    const pillEn = document.getElementById('pillEn');
+    const pillJa = document.getElementById('pillJa');
+    const btnTheme = document.getElementById('btnTheme');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeLabel = document.getElementById('themeLabel');
+    const btnOverview = document.getElementById('btnOverview');
+    const overviewModal = document.getElementById('overviewModal');
+    const btnCloseOverview = document.getElementById('btnCloseOverview');
+    const overviewGrid = document.getElementById('overviewGrid');
+
+    const hudSlideNum = document.getElementById('hudSlideNum');
+    const hudSlideTotal = document.getElementById('hudSlideTotal');
+    const hudPrev = document.getElementById('hudPrev');
+    const hudNext = document.getElementById('hudNext');
+    const hudLang = document.getElementById('hudLang');
+    const hudTheme = document.getElementById('hudTheme');
+    const hudThemeIcon = document.getElementById('hudThemeIcon');
+    const hudOverview = document.getElementById('hudOverview');
+    const hudExit = document.getElementById('hudExit');
+    const fullscreenHud = document.getElementById('fullscreenHud');
+    const btnFullscreenTop = document.getElementById('btnFullscreenTop');
+    const btnFullscreenBottom = document.getElementById('btnFullscreenBottom');
+
+    slideTotalEl.textContent = String(totalSlides).padStart(2, '0');
+    if (hudSlideTotal) hudSlideTotal.textContent = String(totalSlides).padStart(2, '0');
+
+    function updateSlide(index) {
+      if (index < 1) index = 1;
+      if (index > totalSlides) index = totalSlides;
+      currentSlide = index;
+
+      slides.forEach((slide, idx) => {
+        if (idx + 1 === currentSlide) {
+          slide.classList.add('active');
+        } else {
+          slide.classList.remove('active');
+        }
+      });
+
+      slideNumEl.textContent = String(currentSlide).padStart(2, '0');
+      if (hudSlideNum) hudSlideNum.textContent = String(currentSlide).padStart(2, '0');
+      progressBar.style.width = `${(currentSlide / totalSlides) * 100}%`;
+
+      btnPrev.disabled = (currentSlide === 1);
+      btnNext.disabled = (currentSlide === totalSlides);
+      if (hudPrev) hudPrev.disabled = (currentSlide === 1);
+      if (hudNext) hudNext.disabled = (currentSlide === totalSlides);
+
+      document.querySelectorAll('.thumbnail-card').forEach((thumb, idx) => {
+        if (idx + 1 === currentSlide) {
+          thumb.classList.add('active');
+        } else {
+          thumb.classList.remove('active');
+        }
+      });
+    }
+
+    btnPrev.addEventListener('click', () => updateSlide(currentSlide - 1));
+    btnNext.addEventListener('click', () => updateSlide(currentSlide + 1));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        updateSlide(currentSlide + 1);
+        resetHudTimer();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        updateSlide(currentSlide - 1);
+        resetHudTimer();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        updateSlide(1);
+        resetHudTimer();
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        updateSlide(totalSlides);
+        resetHudTimer();
+      } else if (e.key.toLowerCase() === 'o') {
+        toggleOverview();
+      } else if (e.key === 'Escape') {
+        if (overviewModal.classList.contains('open')) {
+          overviewModal.classList.remove('open');
+        } else if (document.body.classList.contains('is-fullscreen') || document.fullscreenElement) {
+          exitFullScreen();
+        }
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullScreen();
+      } else if (e.key.toLowerCase() === 'l' && !e.ctrlKey && !e.metaKey) {
+        btnLang.click();
+      } else if (e.key.toLowerCase() === 't' && !e.ctrlKey && !e.metaKey) {
+        btnTheme.click();
+      }
+    });
+
+    let currentLang = 'en';
+    btnLang.addEventListener('click', () => {
+      if (currentLang === 'en') {
+        currentLang = 'ja';
+        document.body.classList.remove('lang-en');
+        document.body.classList.add('lang-ja');
+        pillEn.classList.remove('active');
+        pillJa.classList.add('active');
+      } else {
+        currentLang = 'en';
+        document.body.classList.remove('lang-ja');
+        document.body.classList.add('lang-en');
+        pillJa.classList.remove('active');
+        pillEn.classList.add('active');
+      }
+      buildOverviewGrid();
+    });
+
+    let isDark = false;
+    btnTheme.addEventListener('click', () => {
+      isDark = !isDark;
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        themeIcon.textContent = '☀️';
+        themeLabel.textContent = 'Paper';
+        if (hudThemeIcon) hudThemeIcon.textContent = '☀️';
+      } else {
+        document.documentElement.classList.remove('dark');
+        themeIcon.textContent = '🌙';
+        themeLabel.textContent = 'Dark';
+        if (hudThemeIcon) hudThemeIcon.textContent = '🌙';
+      }
+    });
+
+    function enterFullScreen() {
+      document.body.classList.add('is-fullscreen');
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(() => {});
+      }
+      resetHudTimer();
+    }
+
+    function exitFullScreen() {
+      document.body.classList.remove('is-fullscreen');
+      if (document.fullscreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    }
+
+    function toggleFullScreen() {
+      if (document.fullscreenElement || document.body.classList.contains('is-fullscreen')) {
+        exitFullScreen();
+      } else {
+        enterFullScreen();
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement) {
+        document.body.classList.add('is-fullscreen');
+        resetHudTimer();
+      } else {
+        document.body.classList.remove('is-fullscreen');
+      }
+    });
+
+    if (btnFullscreenTop) btnFullscreenTop.addEventListener('click', toggleFullScreen);
+    if (btnFullscreenBottom) btnFullscreenBottom.addEventListener('click', toggleFullScreen);
+    if (hudExit) hudExit.addEventListener('click', exitFullScreen);
+    if (hudPrev) hudPrev.addEventListener('click', () => { updateSlide(currentSlide - 1); resetHudTimer(); });
+    if (hudNext) hudNext.addEventListener('click', () => { updateSlide(currentSlide + 1); resetHudTimer(); });
+    if (hudLang) hudLang.addEventListener('click', () => { btnLang.click(); resetHudTimer(); });
+    if (hudTheme) hudTheme.addEventListener('click', () => { btnTheme.click(); resetHudTimer(); });
+    if (hudOverview) hudOverview.addEventListener('click', () => { toggleOverview(); resetHudTimer(); });
+
+    let hudTimer = null;
+    function resetHudTimer() {
+      if (!document.body.classList.contains('is-fullscreen')) return;
+      if (fullscreenHud) {
+        fullscreenHud.classList.remove('hud-hidden');
+        clearTimeout(hudTimer);
+        hudTimer = setTimeout(() => {
+          fullscreenHud.classList.add('hud-hidden');
+        }, 2800);
+      }
+    }
+
+    window.addEventListener('mousemove', resetHudTimer);
+    window.addEventListener('click', resetHudTimer);
+
+    function buildOverviewGrid() {
+      overviewGrid.innerHTML = '';
+      slides.forEach((slide, idx) => {
+        const titleEl = slide.querySelector('.slide-title');
+        let titleText = '';
+        if (titleEl) {
+          const visiblePart = titleEl.querySelector(currentLang === 'en' ? '.en-text' : '.ja-text');
+          titleText = visiblePart ? visiblePart.textContent : titleEl.textContent;
+        }
+
+        const thumb = document.createElement('div');
+        thumb.className = `thumbnail-card ${idx + 1 === currentSlide ? 'active' : ''}`;
+        thumb.innerHTML = `
+          <div class="thumb-num">SLIDE ${String(idx + 1).padStart(2, '0')}</div>
+          <div class="thumb-title">${titleText.trim()}</div>
+        `;
+        thumb.addEventListener('click', () => {
+          updateSlide(idx + 1);
+          overviewModal.classList.remove('open');
+        });
+        overviewGrid.appendChild(thumb);
+      });
+    }
+
+    function toggleOverview() {
+      buildOverviewGrid();
+      overviewModal.classList.toggle('open');
+    }
+
+    btnOverview.addEventListener('click', toggleOverview);
+    btnCloseOverview.addEventListener('click', () => overviewModal.classList.remove('open'));
+    overviewModal.addEventListener('click', (e) => {
+      if (e.target === overviewModal) overviewModal.classList.remove('open');
+    });
+
+    const spotlight = document.getElementById('graphSpotlight');
+    window.addEventListener('mousemove', (e) => {
+      spotlight.style.opacity = '1';
+      spotlight.style.setProperty('--mouse-x', `${e.clientX}px`);
+      spotlight.style.setProperty('--mouse-y', `${e.clientY}px`);
+    });
+
+    window.addEventListener('mouseleave', () => {
+      spotlight.style.opacity = '0';
+    });
+
+    updateSlide(1);
+    buildOverviewGrid();
+  </script>
+</body>
+</html>
